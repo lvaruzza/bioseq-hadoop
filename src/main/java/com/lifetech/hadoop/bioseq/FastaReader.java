@@ -163,24 +163,38 @@ public class FastaReader {
 				if (bufferLength <= 0)
 					break; // EOF
 			}
-
 			for (; bufferPosn < bufferLength; ++bufferPosn) { // search for
 																// newline
-				if (buffer[bufferPosn] == GT) {
+				if (buffer[bufferPosn] == GT 
+						&& bufferPosn > 0 
+						&& (buffer[bufferPosn-1 ] == CR || buffer[bufferPosn-1 ] == LF)) {
+					
 					++bufferPosn; // at next invocation proceed from following
 									// byte
 					finished = true;
 					break;
 				}
 			}
-
+			int removeChars = 1; // Remove last > and last new line
+			
+			if (buffer[bufferPosn-2]==LF) {
+				removeChars++;			
+				if (buffer[bufferPosn-3]==CR) {
+					removeChars++;							
+				}
+			}
+			if (buffer[bufferPosn-2]==CR) {
+				removeChars++;
+			}
+			System.out.println("removeChars = " + removeChars);
+			
 			int readLength = bufferPosn - startPosn;
 
 			// if (prevCharCR && newlineLength == 0)
 			// --readLength; //CR at the end of the buffer
 			bytesConsumed += readLength;
 
-			int appendLength = readLength - 1;
+			int appendLength = readLength - removeChars;
 
 			if (appendLength > maxLineLength - txtLength) {
 				appendLength = maxLineLength - txtLength;

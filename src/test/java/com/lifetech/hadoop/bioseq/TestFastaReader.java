@@ -36,7 +36,7 @@ public class TestFastaReader {
 	@Test
 	public void testReadLine() throws IOException {
 		Text str = new Text();
-		for (int i=0;i<2;i++) {
+		for (int i=0;i<10;i++) {
 			fastaReader.readSeq(str);
 			
 			System.out.println("============================");
