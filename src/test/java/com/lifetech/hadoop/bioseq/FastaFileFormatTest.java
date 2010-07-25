@@ -1,12 +1,12 @@
 package com.lifetech.hadoop.bioseq;
 
 import java.io.IOException;
-import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -16,31 +16,24 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class FastaFileFormatTest {
 
-	  public static class CountMapper 
-	       extends Mapper<Object, Text, Text, IntWritable>{
+	  public static class CopyMapper 
+	       extends Mapper<LongWritable, Text, LongWritable, Text>{
 	    
-	    private final static IntWritable one = new IntWritable(1);
-	    private final static Text total = new Text("total");
-	    
-	    public void map(Object key, Text value, Context context
+	    public void map(LongWritable key, Text value, Context context
 	                    ) throws IOException, InterruptedException {
-	        context.write(total, one);
+	        context.write(key, value);
 	    }
 	  }
 	  
-	  public static class IntSumReducer 
-	       extends Reducer<Text,IntWritable,Text,IntWritable> {
-	    private IntWritable result = new IntWritable();
+	  public static class CopyReducer 
+	       extends Reducer<LongWritable,Text,LongWritable,Text> {
 
-	    public void reduce(Text key, Iterable<IntWritable> values, 
+	    public void reduce(LongWritable key, Iterable<Text> values, 
 	                       Context context
 	                       ) throws IOException, InterruptedException {
-	      int sum = 0;
-	      for (IntWritable val : values) {
-	        sum += val.get();
+	      for (Text val : values) {
+		      context.write(key, val);
 	      }
-	      result.set(sum);
-	      context.write(key, result);
 	    }
 	  }
 
@@ -56,11 +49,13 @@ public class FastaFileFormatTest {
 	    		
 	    Job job = new Job(conf, "FastaFormatTest");
 	    job.setJarByClass(FastaFileFormatTest.class);
-	    job.setMapperClass(CountMapper.class);
-	    job.setCombinerClass(IntSumReducer.class);
-	    job.setReducerClass(IntSumReducer.class);
-	    job.setOutputKeyClass(Text.class);
-	    job.setOutputValueClass(IntWritable.class);
+	    job.setMapperClass(CopyMapper.class);
+
+	    job.setReducerClass(CopyReducer.class);
+	    
+	    job.setOutputKeyClass(LongWritable.class);
+	    job.setOutputValueClass(Text.class);
+	    
 	    FileInputFormat.addInputPath(job, new Path("tests/test1/input.fasta"));
 	    FileOutputFormat.setOutputPath(job,outputPath);
 	    System.exit(job.waitForCompletion(true) ? 0 : 1);
