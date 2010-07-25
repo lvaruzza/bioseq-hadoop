@@ -5,13 +5,11 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class FastaFileFormatTest {
@@ -41,7 +39,7 @@ public class FastaFileFormatTest {
 	  
 	  public static void main(String[] args) throws Exception {
 	    Configuration conf = new Configuration();
-	    FileSystem fs = outputPath.getFileSystem(conf);
+	    FileSystem fs = outputPath.getFileSystem(conf);	    
 	    
 	    if (fs.exists(outputPath)) {
 	    	fs.delete(outputPath, true);
@@ -49,6 +47,7 @@ public class FastaFileFormatTest {
 	    		
 	    Job job = new Job(conf, "FastaFormatTest");
 	    job.setJarByClass(FastaFileFormatTest.class);
+	    job.setInputFormatClass(FastaFileInputFormat.class);
 	    job.setMapperClass(CopyMapper.class);
 
 	    job.setReducerClass(CopyReducer.class);
@@ -56,7 +55,7 @@ public class FastaFileFormatTest {
 	    job.setOutputKeyClass(LongWritable.class);
 	    job.setOutputValueClass(Text.class);
 	    
-	    FileInputFormat.addInputPath(job, new Path("tests/test1/input.fasta"));
+	    FastaFileInputFormat.addInputPath(job, new Path("tests/test1/input.fasta"));
 	    FileOutputFormat.setOutputPath(job,outputPath);
 	    System.exit(job.waitForCompletion(true) ? 0 : 1);
 	  }

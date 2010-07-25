@@ -20,6 +20,8 @@ package com.lifetech.hadoop.bioseq;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -32,9 +34,6 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.hadoop.util.LineReader;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
 
 /**
  * Treats keys as offset in file and value as line. 
@@ -79,7 +78,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
       in = new FastaReader(fileIn, job);
     }
     if (skipFirstLine) {  // skip first line and re-establish "start".
-      start += in.readLine(new Text(), 0,
+      start += in.readSeq(new Text(), 0,
                            (int)Math.min((long)Integer.MAX_VALUE, end - start));
     }
     this.pos = start;
@@ -95,7 +94,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
     }
     int newSize = 0;
     while (pos < end) {
-      newSize = in.readLine(value, maxLineLength,
+      newSize = in.readSeq(value, maxLineLength,
                             Math.max((int)Math.min(Integer.MAX_VALUE, end-pos),
                                      maxLineLength));
       if (newSize == 0) {

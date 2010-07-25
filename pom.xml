@@ -9,5 +9,10 @@
   		<artifactId>hadoop-core</artifactId>
   		<version>0.20.2</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.testng</groupId>
+  		<artifactId>testng</artifactId>
+  		<version>5.12.1</version>
+  	</dependency>
   </dependencies>
 </project>
