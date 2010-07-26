@@ -18,7 +18,7 @@ public class TestFastaReader {
 	public void setUp() {
 		try {
 			inputStream = new FileInputStream("tests/test1/input.fasta");
-			fastaReader = new FastaReader(inputStream);
+			fastaReader = new FastaReader(inputStream,1024);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -35,12 +35,14 @@ public class TestFastaReader {
 	
 	@Test
 	public void testReadLine() throws IOException {
-		Text str = new Text();
-		for (int i=0;i<10;i++) {
-			fastaReader.readSeq(str);
+		Text header = new Text();
+		Text seq = new Text();
+		System.out.println("============================");
+		for (int i=0;i<100;i++) {
+			fastaReader.readSeq(header,seq);
 			
-			System.out.println("============================");
-			System.out.println(str);
+			System.out.println("H: " + header);
+			System.out.println("S: " + seq);
 			System.out.println("============================");
 		}
 	}

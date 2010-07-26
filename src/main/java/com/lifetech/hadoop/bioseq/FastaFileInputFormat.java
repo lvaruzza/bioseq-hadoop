@@ -11,12 +11,10 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
-public class FastaFileInputFormat extends FileInputFormat<LongWritable, Text> {
-
-	private CompressionCodecFactory compressionCodecs = null;
+public class FastaFileInputFormat extends FileInputFormat<LongWritable, SequenceRecord> {
 
 	@Override
-	public RecordReader<LongWritable, Text> createRecordReader(
+	public RecordReader<LongWritable, SequenceRecord> createRecordReader(
 			InputSplit split, TaskAttemptContext context) {
 
 		return new FastaRecordReader();

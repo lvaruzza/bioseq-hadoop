@@ -20,6 +20,7 @@ package com.lifetech.hadoop.bioseq;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -93,26 +94,13 @@ public class FastaReader {
 		in.close();
 	}
 
-	private enum NewLineType {
-		UNK(0), CRnl(1), LFnl(1), CRLFnl(2);
-
-		private final int size;
-
-		NewLineType(int size) {
-			this.size = size;
-		}
-
-		public int getSize() {
-			return size;
-		};
-	};
 
 	/**
 	 * Read one line from the InputStream into the given Text. A line can be
 	 * terminated by one of the following: '\n' (LF) , '\r' (CR), or '\r\n'
 	 * (CR+LF). EOF also terminates an otherwise unterminated line.
 	 * 
-	 * @param str
+	 * @param seq
 	 *            the object to store the given line (without newline)
 	 * @param maxLineLength
 	 *            the maximum number of bytes to store into str; the rest of the
@@ -128,7 +116,7 @@ public class FastaReader {
 	 * @throws IOException
 	 *             if the underlying stream throws
 	 */
-	public int readSeq(Text str, int maxLineLength, int maxBytesToConsume)
+	private int readSeq0(Text record, int maxLineLength, int maxBytesToConsume)
 			throws IOException {
 		/*
 		 * We're reading data from in, but the head of the stream may be already
@@ -144,7 +132,7 @@ public class FastaReader {
 		 * delay consuming it until we have a chance to look at the char that
 		 * follows.
 		 */
-		str.clear();
+		record.clear();
 		int txtLength = 0; // tracks str.getLength(), as an optimization
 		boolean finished = false;
 		
@@ -156,6 +144,7 @@ public class FastaReader {
 			if (bufferPosn >= bufferLength) {
 				startPosn = bufferPosn = 0;
 
+				System.out.println("------------- Exausted Buffer -----------------");
 				// if (prevCharCR)
 				// ++bytesConsumed; //account for CR from previous read
 
@@ -163,6 +152,8 @@ public class FastaReader {
 				if (bufferLength <= 0)
 					break; // EOF
 			}
+			//System.out.println("# First Char = " + (char)buffer[bufferPosn]);
+			
 			for (; bufferPosn < bufferLength; ++bufferPosn) { // search for
 																// newline
 				if (buffer[bufferPosn] == GT 
@@ -186,7 +177,6 @@ public class FastaReader {
 			if (buffer[bufferPosn-2]==CR) {
 				removeChars++;
 			}
-			System.out.println("removeChars = " + removeChars);
 			
 			int readLength = bufferPosn - startPosn;
 
@@ -199,8 +189,9 @@ public class FastaReader {
 			if (appendLength > maxLineLength - txtLength) {
 				appendLength = maxLineLength - txtLength;
 			}
+			
 			if (appendLength > 0) {
-				str.append(buffer, startPosn, appendLength);
+				record.append(buffer, startPosn, appendLength);
 				txtLength += appendLength;
 			}
 		} while (!finished && bytesConsumed < maxBytesToConsume);
@@ -211,6 +202,37 @@ public class FastaReader {
 		return (int) bytesConsumed;
 	}
 
+	public int readSeq(Text header,Text seq, int maxLineLength, int maxBytesToConsume) throws IOException {
+		Text record = new Text();
+		int bytesConsumed = readSeq0(record,maxLineLength,maxBytesToConsume);
+		
+		if (record.charAt(0) == '#') {
+			record = new Text();
+			bytesConsumed += readSeq0(record,maxLineLength,maxBytesToConsume);
+		}
+		
+		byte[] data = record.getBytes();
+		
+		int headerEnd = -1;
+		
+		for(int i=0;i<data.length;i++) {
+			if (data[i] == CR  || data[i] == LF) {
+				headerEnd = i;
+				break;
+			}
+		}
+		if (headerEnd == -1) {
+			header.set(data);
+			seq.set(new byte[0]);
+		} else {
+			int seqStart = headerEnd +1;
+			header.set(Arrays.copyOfRange(data, 0, headerEnd));
+			seq.set(Arrays.copyOfRange(data, seqStart,data.length));
+		}
+		
+		return bytesConsumed;
+	}
+	
 	/**
 	 * Read from the InputStream into the given Text.
 	 * 
@@ -222,8 +244,8 @@ public class FastaReader {
 	 * @throws IOE
 	 *             xception if the underlying stream throws
 	 */
-	public int readSeq(Text str, int maxLineLength) throws IOException {
-		return readSeq(str, maxLineLength, Integer.MAX_VALUE);
+	public int readSeq(Text header, Text seq,int maxLineLength) throws IOException {
+		return readSeq(header, seq, maxLineLength, Integer.MAX_VALUE);
 	}
 
 	/**
@@ -235,8 +257,8 @@ public class FastaReader {
 	 * @throws IOException
 	 *             if the underlying stream throws
 	 */
-	public int readSeq(Text str) throws IOException {
-		return readSeq(str, Integer.MAX_VALUE, Integer.MAX_VALUE);
+	public int readSeq(Text header,Text seq) throws IOException {
+		return readSeq(header,seq, Integer.MAX_VALUE, Integer.MAX_VALUE);
 	}
 
 }

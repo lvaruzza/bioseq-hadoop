@@ -55,7 +55,7 @@ public class FastaFileFormatTest {
 	    job.setOutputKeyClass(LongWritable.class);
 	    job.setOutputValueClass(Text.class);
 	    
-	    FastaFileInputFormat.addInputPath(job, new Path("tests/test1/input.fasta"));
+	    FastaFileInputFormat.addInputPath(job, new Path("tests/test1/input2.fasta"));
 	    FileOutputFormat.setOutputPath(job,outputPath);
 	    System.exit(job.waitForCompletion(true) ? 0 : 1);
 	  }
