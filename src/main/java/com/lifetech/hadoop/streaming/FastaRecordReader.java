@@ -18,8 +18,7 @@ import org.apache.hadoop.mapred.RecordReader;
  * 
  */
 @SuppressWarnings("deprecation")
-public class FastaRecordReader implements
-		RecordReader<LongWritable, Text> {
+public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 
 	public static final String START_TOKEN = "start.token";
 
@@ -30,9 +29,7 @@ public class FastaRecordReader implements
 	private final FSDataInputStream fsin;
 	private final DataOutputBuffer buffer = new DataOutputBuffer();
 
-	public FastaRecordReader(
-			FileSplit split,
-			JobConf jobConf)
+	public FastaRecordReader(FileSplit split, JobConf jobConf)
 			throws IOException {
 		startToken = jobConf.get(START_TOKEN).getBytes("utf-8");
 
@@ -52,11 +49,17 @@ public class FastaRecordReader implements
 				try {
 					buffer.write(startToken);
 					if (readUntilMatch(startToken, true)) {
+						Sequence s = new Sequence(buffer.getData());
 						key.set(fsin.getPos());
-						value.set(buffer.getData(), 0, buffer.getLength());
+						value.set(s.toString().getBytes(), 0, s.toString().getBytes().length);
+						if (fsin.getPos() < end) {
+							// unget byte
+							fsin.seek(this.getPos() - startToken.length);
+						}
 						return true;
 					}
 				} finally {
+					buffer.flush();
 					buffer.reset();
 				}
 			}
@@ -94,20 +97,28 @@ public class FastaRecordReader implements
 		int i = 0;
 		while (true) {
 			int b = fsin.read();
+
 			// end of file:
-			if (b == -1)
+			if (b == -1 && !withinBlock)
 				return false;
-			// save to buffer:
-			if (withinBlock)
-				buffer.write(b);
+
+			// end of sequence:
+			if (b == -1 && withinBlock)
+				return true;
 
 			// check if we're matching:
 			if (b == match[i]) {
 				i++;
-				if (i >= match.length)
+				if (i >= match.length) {
 					return true;
-			} else
+				}
+			} else {
 				i = 0;
+			}
+			// save to buffer:
+			if (withinBlock)
+				buffer.write(b);
+			
 			// see if we've passed the stop point:
 			if (!withinBlock && i == 0 && fsin.getPos() >= end)
 				return false;

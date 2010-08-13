@@ -34,7 +34,7 @@ import org.apache.hadoop.mapred.TextInputFormat;
 @SuppressWarnings("deprecation")
 public class FastaInputFormat extends TextInputFormat {
 
-	@Override
+	
 	public RecordReader<LongWritable, Text> getRecordReader(
 			InputSplit inputSplit,
 			JobConf jobConf, Reporter reporter)
