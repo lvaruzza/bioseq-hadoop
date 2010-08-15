@@ -1,7 +1,0 @@
-<suite name="Suite" parallel="false">
-  <test name="Test">
-    <classes>
-      <class name="com.lifetech.hadoop.bioseq.TestFastaReader"/>
-    </classes>
-  </test>
-</suite>
