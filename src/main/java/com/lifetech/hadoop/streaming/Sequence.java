@@ -5,13 +5,13 @@ public class Sequence {
 	private String id;
 	private String sequence = "";
 
-	public Sequence(byte[] data) {
-		parse(new String(data));
+	public Sequence(byte[] data,int length) {
+		parse(new String(data,0,length));
 	}
 
 	@Override
 	public String toString() {
-		return String.format("%s\t%s", id, sequence);
+		return String.format("%s\t%s", id,sequence);
 	}
 
 	private void parse(String seq) {

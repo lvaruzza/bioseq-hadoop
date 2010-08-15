@@ -32,7 +32,6 @@ public class FastaFileFormatApp implements Tool {
 		public void reduce(LongWritable key, Iterable<Text> values,
 				Context context) throws IOException, InterruptedException {
 			for (Text val : values) {
-				val.append("|".getBytes(), 0,1);
 				context.write(key, val);
 			}
 		}
@@ -60,7 +59,7 @@ public class FastaFileFormatApp implements Tool {
 		job.setOutputKeyClass(LongWritable.class);
 		job.setOutputValueClass(Text.class);
 
-		FastaInputFormat.setInputPaths(job, new Path("file:////home/varuzza/workspace/bioseq/data/test1/input.fasta"));
+		FastaInputFormat.setInputPaths(job, new Path("file:////home/varuzza/workspace/bioseq/data/test1/input2.fasta"));
 		FileOutputFormat.setOutputPath(job, outputPath);
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
@@ -75,9 +74,13 @@ public class FastaFileFormatApp implements Tool {
 		this.conf = conf;
 	}
 	
-	public static int main(String[] arg0) throws Exception {
+	public static void main(String[] args) {
 		Tool app = new FastaFileFormatApp();
 		app.setConf(new Configuration());
-		return app.run(arg0);
+		try {
+			app.run(args);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

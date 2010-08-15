@@ -20,10 +20,11 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
  * 
  */
 public class FastaRecordReader extends RecordReader<LongWritable, Text> {
-
+	
 	public static final String START_TOKEN = "start.token";
 
-	private byte[] startToken = ">".getBytes();
+	private byte[] startToken1 = ">".getBytes();
+	private byte[] startToken2 = "\n>".getBytes();
 
 	private long start;
 	private long end;
@@ -31,8 +32,8 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	private DataOutputBuffer buffer = new DataOutputBuffer();
 
 
-	private LongWritable key;
-	private Text value;
+	private LongWritable key = new LongWritable();
+	private Text value = new Text();
 
 	public long getPos() throws IOException {
 		return fsin.getPos();
@@ -89,7 +90,6 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 
 	@Override
 	public Text getCurrentValue() throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
 		return value;
 	}
 
@@ -113,16 +113,20 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	@Override
 	public boolean nextKeyValue() throws IOException, InterruptedException {
 		if (fsin.getPos() < end) {
-			if (readUntilMatch(startToken, false)) {
+			if (readUntilMatch(startToken1, false)) {
 				try {
-					buffer.write(startToken);
-					if (readUntilMatch(startToken, true)) {
-						Sequence s = new Sequence(buffer.getData());
+					//buffer.write(startToken);
+					if (readUntilMatch(startToken2, true)) {
+						//System.out.print("--------> " );
+						//System.out.println(buffer.getData());
+						Sequence s = new Sequence(buffer.getData(),buffer.getLength());
+						//Sequence s = new Sequence("xxxxxx".getBytes());
 						key.set(fsin.getPos());
-						value.set(s.toString().getBytes(), 0, s.toString().getBytes().length);
+						value = new Text();						
+						value.set(s.toString());						
 						if (fsin.getPos() < end) {
 							// unget byte
-							fsin.seek(this.getPos() - startToken.length);
+							fsin.seek(this.getPos() - startToken1.length);
 						}
 						return true;
 					}
