@@ -30,7 +30,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	private long end;
 	private FSDataInputStream fsin;
 	private DataOutputBuffer buffer = new DataOutputBuffer();
-
+	boolean endOfFile = false;
 
 	private LongWritable key = new LongWritable();
 	private Text value = new Text();
@@ -55,23 +55,32 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 		while (true) {
 			int b = fsin.read();
 
+			if (b==-1) endOfFile=true;
+			
 			// end of file:
-			if (b == -1 && !withinBlock)
+			if (endOfFile && !withinBlock)
 				return false;
 
 			// end of sequence:
-			if (b == -1 && withinBlock)
+			if (endOfFile && withinBlock)
 				return true;
 
 			// check if we're matching:
-			if (b == match[i]) {
-				i++;
-				if (i >= match.length) {
-					return true;
+			boolean retry;
+			do {
+				retry = false;
+				if (b == match[i]) {
+					i++;
+					if (i >= match.length) {
+						return true;
+					}
+				} else {
+					// if there is a mismatch, restart the match process
+					if (i!=0) retry =true;
+					i = 0;
 				}
-			} else {
-				i = 0;
-			}
+			} while(retry);
+			
 			// save to buffer:
 			if (withinBlock)
 				buffer.write(b);
@@ -116,13 +125,9 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 			if (readUntilMatch(startToken1, false)) {
 				try {
 					//buffer.write(startToken);
-					if (readUntilMatch(startToken2, true)) {
-						//System.out.print("--------> " );
-						//System.out.println(buffer.getData());
+					if (readUntilMatch(startToken2, true) || endOfFile) {
 						Sequence s = new Sequence(buffer.getData(),buffer.getLength());
-						//Sequence s = new Sequence("xxxxxx".getBytes());
 						key.set(fsin.getPos());
-						value = new Text();						
 						value.set(s.toString());						
 						if (fsin.getPos() < end) {
 							// unget byte

@@ -37,12 +37,13 @@ public class FastaFileFormatApp implements Tool {
 		}
 	}
 
-	private static Path outputPath = new Path("data/output");
-
 	private Configuration conf;
 
 	@Override
-	public int run(String[] arg0) throws Exception {
+	public int run(String[] args) throws Exception {
+		Path inputPath = new Path(args[0]);
+		Path outputPath = new Path(args[1]);
+		
 		FileSystem fs = outputPath.getFileSystem(conf);
 		
 		if (fs.exists(outputPath)) {
@@ -59,7 +60,7 @@ public class FastaFileFormatApp implements Tool {
 		job.setOutputKeyClass(LongWritable.class);
 		job.setOutputValueClass(Text.class);
 
-		FastaInputFormat.setInputPaths(job, new Path("file:////home/varuzza/workspace/bioseq/data/test1/input2.fasta"));
+		FastaInputFormat.setInputPaths(job, inputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
