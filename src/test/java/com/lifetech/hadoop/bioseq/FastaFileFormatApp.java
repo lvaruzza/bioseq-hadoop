@@ -13,7 +13,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 
-import com.lifetech.hadoop.streaming.FastaInputFormat;
+import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 
 public class FastaFileFormatApp implements Tool {
 

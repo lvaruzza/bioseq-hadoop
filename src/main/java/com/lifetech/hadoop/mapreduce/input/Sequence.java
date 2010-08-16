@@ -1,4 +1,4 @@
-package com.lifetech.hadoop.streaming;
+package com.lifetech.hadoop.mapreduce.input;
 
 public class Sequence {
 

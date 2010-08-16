@@ -9,5 +9,4 @@ hadoop jar $HADOOP_HOME/contrib/streaming/hadoop-*-streaming.jar \
     -inputformat com.lifetech.hadoop.streaming.FastaInputFormat \
     -input $input  -output $output \
     -mapper "cat" \
-    -reducer "cat" \
-    -jobconf start.token=">"
+    -reducer "cat"

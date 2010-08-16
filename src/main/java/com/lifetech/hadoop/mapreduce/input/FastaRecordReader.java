@@ -1,25 +1,25 @@
-package com.lifetech.hadoop.streaming;
+package com.lifetech.hadoop.mapreduce.input;
 
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-
-import com.lifetech.hadoop.mapreduce.input.Sequence;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 /**
- * Read Fasta sequence
+ * XMLRecordReader class to read through a given xml document to output xml
+ * blocks as records as specified by the start tag and end tag
  * 
  */
-@Deprecated
-public class FastaRecordReader implements RecordReader<LongWritable, Text> {
+public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	
 	public static final String START_TOKEN = "start.token";
 
@@ -35,23 +35,6 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 	private LongWritable key = new LongWritable();
 	private Text value = new Text();
 
-	private JobConf jobConf;
-	
-	public FastaRecordReader(FileSplit split,JobConf jobConf)
-				throws IOException {
-		
-		this.jobConf = jobConf;
-
-		// open the file and seek to the start of the split
-		start = split.getStart();
-		end = start + split.getLength();
-		Path file = split.getPath();
-		FileSystem fs = file.getFileSystem(jobConf);
-		fsin = fs.open(split.getPath());
-		fsin.seek(start);				
-		
-	}
-	
 	public long getPos() throws IOException {
 		return fsin.getPos();
 	}
@@ -108,19 +91,36 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 		}
 	}
 
-
 	@Override
-	public LongWritable createKey() {
-		return new LongWritable();
+	public LongWritable getCurrentKey() throws IOException,
+			InterruptedException {
+		return key;
 	}
 
 	@Override
-	public Text createValue() {
-		return new Text();
+	public Text getCurrentValue() throws IOException, InterruptedException {
+		return value;
 	}
 
 	@Override
-	public boolean next(LongWritable key, Text value) throws IOException {
+	public void initialize(InputSplit split0, TaskAttemptContext context)
+			throws IOException, InterruptedException {
+		Configuration jobConf = context.getConfiguration();
+		//startToken = jobConf.get(START_TOKEN).getBytes("utf-8");
+		
+		FileSplit split = (FileSplit) split0;
+		
+		// open the file and seek to the start of the split
+		start = split.getStart();
+		end = start + split.getLength();
+		Path file = split.getPath();
+		FileSystem fs = file.getFileSystem(jobConf);
+		fsin = fs.open(split.getPath());
+		fsin.seek(start);		
+	}
+
+	@Override
+	public boolean nextKeyValue() throws IOException, InterruptedException {
 		if (fsin.getPos() < end) {
 			if (readUntilMatch(startToken1, false)) {
 				try {
