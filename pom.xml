@@ -9,6 +9,11 @@
   		<artifactId>hadoop-core</artifactId>
   		<version>0.20.2</version>
   	</dependency>
+  	<dependency>
+  		<groupId>commons-lang</groupId>
+  		<artifactId>commons-lang</artifactId>
+  		<version>2.5</version>
+  	</dependency>
   </dependencies>
   
   <build>

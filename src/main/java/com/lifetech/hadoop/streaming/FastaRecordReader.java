@@ -12,7 +12,8 @@ import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 
-import com.lifetech.hadoop.mapreduce.input.Sequence;
+import com.lifetech.hadoop.mapreduce.input.InvalidFastaRecord;
+import com.lifetech.hadoop.mapreduce.input.SequenceMaker;
 
 /**
  * Read Fasta sequence
@@ -30,6 +31,7 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 	private long end;
 	private FSDataInputStream fsin;
 	private DataOutputBuffer buffer = new DataOutputBuffer();
+	private SequenceMaker seqMaker = new SequenceMaker();	
 	boolean endOfFile = false;
 
 	private LongWritable key = new LongWritable();
@@ -126,9 +128,13 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 				try {
 					//buffer.write(startToken);
 					if (readUntilMatch(startToken2, true) || endOfFile) {
-						Sequence s = new Sequence(buffer.getData(),buffer.getLength());
-						key.set(fsin.getPos());
-						value.set(s.toString());						
+						try {
+							byte[] s = seqMaker.parseBuffer(buffer.getData(),buffer.getLength());
+							key.set(fsin.getPos());
+							value.set(s);
+						} catch (InvalidFastaRecord e) {
+							throw new RuntimeException(e);
+						}
 						if (fsin.getPos() < end) {
 							// unget byte
 							fsin.seek(this.getPos() - startToken1.length);

@@ -30,6 +30,8 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	private long end;
 	private FSDataInputStream fsin;
 	private DataOutputBuffer buffer = new DataOutputBuffer();
+	private SequenceMaker seqMaker = new SequenceMaker();
+	
 	boolean endOfFile = false;
 
 	private LongWritable key = new LongWritable();
@@ -126,9 +128,15 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 				try {
 					//buffer.write(startToken);
 					if (readUntilMatch(startToken2, true) || endOfFile) {
-						Sequence s = new Sequence(buffer.getData(),buffer.getLength());
-						key.set(fsin.getPos());
-						value.set(s.toString());						
+						try {
+							key.set(fsin.getPos());
+							byte[] sequence = seqMaker.parseBuffer(buffer.getData(),buffer.getLength());
+							value.set(sequence);
+							
+						} catch(InvalidFastaRecord e) {
+							throw new RuntimeException(e);
+						}
+						
 						if (fsin.getPos() < end) {
 							// unget byte
 							fsin.seek(this.getPos() - startToken1.length);

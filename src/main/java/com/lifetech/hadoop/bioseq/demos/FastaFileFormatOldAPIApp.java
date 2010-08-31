@@ -1,4 +1,4 @@
-package com.lifetech.hadoop.bioseq;
+package com.lifetech.hadoop.bioseq.demos;
 
 import java.io.IOException;
 import java.util.Iterator;
