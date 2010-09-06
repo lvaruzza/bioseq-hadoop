@@ -2,9 +2,12 @@ package com.lifetech.hadoop.bioseq.mapreduce.input;
 
 import java.io.IOException;
 
+import junit.framework.TestCase;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
@@ -13,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
-import static java.lang.System.out;
+import static org.junit.Assert.*;
 
 
 public class TestFastRecordReader {
@@ -40,40 +43,33 @@ public class TestFastRecordReader {
 	}
 	
 	@Test
-	public void testWholeFileReadOne() throws IOException, InterruptedException {
+	public void testWholeFile_testFirst() throws IOException, InterruptedException {
 		FastaRecordReader frr = new FastaRecordReader();
 		long size = fs.getFileStatus(testFile).getLen();
 		InputSplit split = new FileSplit(testFile,0,size,null);
 
 		frr.initialize(split,context);
 		frr.nextKeyValue();
-
-		out.println("key   = " + frr.getCurrentKey());
-		out.println("value = " + frr.getCurrentValue());
-		
-		/*while(frr.nextKeyValue()) {
-			out.println(frr.getCurrentKey());
-			out.println(frr.getCurrentValue());
-		}*/
+		assertEquals("487_14_960_R3\tG20112231312123121221311132212223221221222322122222",frr.getCurrentValue().toString());
 	}
 
 	@Test
-	public void testWholeFileReadAll() throws IOException, InterruptedException {
+	public void testWholeFile_testLast() throws IOException, InterruptedException {
 		FastaRecordReader frr = new FastaRecordReader();
 		long size = fs.getFileStatus(testFile).getLen();
 		InputSplit split = new FileSplit(testFile,0,size,null);
 
 		frr.initialize(split,context);
 		int i = 0;
-		out.println("*********************************************************************");
+		Text value = null;
 		while(frr.nextKeyValue()) {
-			out.println("++++++++++++++++++++++");
-			out.println(String.format("key %d  = |%s|",i,frr.getCurrentKey()));
-			out.println(String.format("value %d = |%s| ",i,frr.getCurrentValue()));
-			out.println("++++++++++++++++++++++");
+			value = frr.getCurrentValue();
+			//System.out.println(String.format("%d *%s*",value.getLength(),value.toString()));
 			i++;
+			//System.out.println("\n############################################################\n");
 		}
-		out.println("*********************************************************************");
+		assertEquals(495,i);
+		assertEquals("487_70_1270_R3\tG31232233030221120330213013113201232012023333001233",value.toString());
 	}
 	
 }

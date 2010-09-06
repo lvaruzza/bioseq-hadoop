@@ -35,7 +35,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	boolean endOfFile = false;
 
 	private LongWritable key = new LongWritable();
-	private Text value = new Text();
+	private Text value = null;
 
 	public long getPos() throws IOException {
 		return fsin.getPos();
@@ -131,7 +131,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 						try {
 							key.set(fsin.getPos());
 							byte[] sequence = seqMaker.parseBuffer(buffer.getData(),buffer.getLength());
-							value.set(sequence);
+							value = new Text(sequence);
 							
 						} catch(InvalidFastaRecord e) {
 							throw new RuntimeException(e);
