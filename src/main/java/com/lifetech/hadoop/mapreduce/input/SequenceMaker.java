@@ -1,8 +1,11 @@
 package com.lifetech.hadoop.mapreduce.input;
 
+import static java.lang.System.out;
+
 import java.io.IOException;
 
 import org.apache.hadoop.io.DataOutputBuffer;
+
 
 public class SequenceMaker {
 
@@ -30,23 +33,28 @@ public class SequenceMaker {
 	 *        linha.
 	 */
 	public byte[] parseBuffer(byte[] data, int length) throws InvalidFastaRecord {
-
+		buffer.reset();
+		
 		int start = 0;
 		int end = 0;
-
-		start = indexOf(data, NEWLINE, start,length);
 		
+		start = indexOf(data, NEWLINE, start,length);
+
+
 		if (start == -1) {
 			throw new InvalidFastaRecord("Missing the header line");
 		}
 		try {
-			buffer.write(data, 0, start);
 			
-			do {
+			buffer.write(data, 0, start);
+			buffer.write('\t');
+			start++;
+			while(true) {
 				end = indexOf(data,NEWLINE,start,length);
-				buffer.write(data,start,end-1);				
-				start = end;
-			} while(end != -1);
+				if (end == -1) break;
+				buffer.write(data,start,end-start);	
+				start = end+1;
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
