@@ -64,14 +64,31 @@ public class TestFastRecordReader {
 		Text value = null;
 		while(frr.nextKeyValue()) {
 			value = frr.getCurrentValue();
-			//System.out.println(String.format("%d *%s*",value.getLength(),value.toString()));
+			System.out.println(String.format("%d *%s*",value.getLength(),value.toString()));
 			i++;
 			//System.out.println("\n############################################################\n");
 		}
 		assertEquals(495,i);
 		assertEquals("487_70_1270_R3\tG31232233030221120330213013113201232012023333001233",value.toString());
 	}
+	@Test
+	public void testWholeFile_testFourth() throws IOException, InterruptedException {
+		FastaRecordReader frr = new FastaRecordReader();
+		long size = fs.getFileStatus(testFile).getLen();
+		InputSplit split = new FileSplit(testFile,0,size,null);
 
+		frr.initialize(split,context);
+
+		for(int i=0;i<4;i++) 
+			frr.nextKeyValue();
+			
+		Text value = frr.getCurrentValue();
+		
+		assertEquals(
+				"487_15_417_R3\tG232333300323303133222311210012332211322220221112220312021222322221322" + 
+				"3102220212220222222222022222222G10111121320333212211121121213122221212212222222222",value.toString());
+	}
+	
 	@Test
 	public void testSplitFile() throws IOException, InterruptedException {
 		FastaRecordReader frr = new FastaRecordReader();

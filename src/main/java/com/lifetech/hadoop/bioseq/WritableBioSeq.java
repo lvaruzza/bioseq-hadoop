@@ -10,6 +10,10 @@ import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 
+/*
+ * Writable Bio Seequence with id, sequence and quality
+ * 
+ */
 public class WritableBioSeq implements Writable,WritableComparable<WritableBioSeq> {
 
 	public static class Comparator extends WritableComparator {
@@ -19,6 +23,10 @@ public class WritableBioSeq implements Writable,WritableComparable<WritableBioSe
 			super(WritableBioSeq.class);
 		}
 
+		/* TOFINISH
+		 * (non-Javadoc)
+		 * @see org.apache.hadoop.io.WritableComparator#compare(byte[], int, int, byte[], int, int)
+		 */
 		@Override
 		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 			try {
@@ -38,9 +46,9 @@ public class WritableBioSeq implements Writable,WritableComparable<WritableBioSe
 		}
 	}
 
-	static {
+	/*static {
 		WritableComparator.define(WritableBioSeq.class, new Comparator());
-	}
+	}*/
 
 	public Text id;
 	public Text sequence;

@@ -27,21 +27,25 @@ public class SequenceMaker {
 		return -1;
 	}
 
-	//private DataOutputBuffer buffer = new DataOutputBuffer();
-
 	/*
 	 * TODO: Cuidado, esse código só trabalha com \n, não aceita \r\n ou outro terminador de
 	 *        linha.
 	 */
-	public byte[] parseBuffer(byte[] data, int length) throws InvalidFastaRecord {
-		DataOutputBuffer buffer = new DataOutputBuffer();
-		
+	public static int indexOfNewline(byte[] array, int startIndex,int stopIndex) {
+		return indexOf(array,NEWLINE,startIndex,stopIndex);
+	}
+	
+	private DataOutputBuffer buffer = new DataOutputBuffer();
+
+	public byte[] parseBufferAsText(byte[] data, int length) throws InvalidFastaRecord {
+		//DataOutputBuffer buffer = new DataOutputBuffer();
+		buffer.reset();
 		//out.println(String.format(">1|%s|1<",new String(data,0,length)));
 		
 		int start = 0;
 		int end = 0;
 		
-		start = indexOf(data, NEWLINE, start,length);
+		start = indexOfNewline(data, start,length);
 		if (start == -1) {
 			throw new InvalidFastaRecord("Missing the header line");
 		}
@@ -51,18 +55,18 @@ public class SequenceMaker {
 			buffer.write('\t');
 			start++;
 			while(true) {
-				end = indexOf(data,NEWLINE,start,length);
+				end = indexOfNewline(data,start,length);
 				if (end == -1) break;
 				//out.println(String.format("%d %d %d |%s|",start,end,end-start,new String(Arrays.copyOfRange(data, start, end))));
 				buffer.write(data,start,end-start);				
 				//out.println(String.format("buffer len = %d",buffer.getLength()));
 				start = end+1;
 			}
+			buffer.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
-		
 		return Arrays.copyOf(buffer.getData(),buffer.getLength());
 	}
 
