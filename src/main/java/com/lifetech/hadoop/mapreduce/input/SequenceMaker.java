@@ -1,11 +1,12 @@
 package com.lifetech.hadoop.mapreduce.input;
 
-import static java.lang.System.out;
-
 import java.io.IOException;
 import java.util.Arrays;
 
 import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.Text;
+
+import com.lifetech.hadoop.bioseq.WritableBioSeq;
 
 
 public class SequenceMaker {
@@ -37,10 +38,11 @@ public class SequenceMaker {
 	
 	private DataOutputBuffer buffer = new DataOutputBuffer();
 
-	public byte[] parseBufferAsText(byte[] data, int length) throws InvalidFastaRecord {
+	public Text parseBufferAsText(byte[] data, int length) throws InvalidFastaRecord {
 		//DataOutputBuffer buffer = new DataOutputBuffer();
 		buffer.reset();
 		//out.println(String.format(">1|%s|1<",new String(data,0,length)));
+		Text result = new Text();
 		
 		int start = 0;
 		int end = 0;
@@ -67,7 +69,47 @@ public class SequenceMaker {
 			throw new RuntimeException(e);
 		}
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
-		return Arrays.copyOf(buffer.getData(),buffer.getLength());
+		result.set(buffer.getData(),0, buffer.getLength());
+		return result;
 	}
 
+	public WritableBioSeq parseBufferAsBioSeq(byte[] data, int length) throws InvalidFastaRecord {
+		//DataOutputBuffer buffer = new DataOutputBuffer();
+		Text sequence = new Text();
+		Text id = new Text();
+		
+		//out.println(String.format(">1|%s|1<",new String(data,0,length)));
+		
+		int start = 0;
+		int end = 0;
+		
+		start = indexOfNewline(data, start,length);
+		if (start == -1) {
+			throw new InvalidFastaRecord("Missing the header line");
+		}
+		id.set(data,0,start);
+		start++;
+		
+		try {
+			buffer.reset();
+			while(true) {
+				end = indexOfNewline(data,start,length);
+				if (end == -1) break;
+				//out.println(String.format("%d %d %d |%s|",start,end,end-start,new String(Arrays.copyOfRange(data, start, end))));
+				buffer.write(data,start,end-start);				
+				//out.println(String.format("buffer len = %d",buffer.getLength()));
+				start = end+1;
+			}
+			buffer.flush();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		sequence.set(buffer.getData(), 0, buffer.getLength());
+		
+		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
+		return new WritableBioSeq(id,
+							sequence,
+							null);
+	}
+	
 }

@@ -15,8 +15,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 /**
- * XMLRecordReader class to read through a given xml document to output xml
- * blocks as records as specified by the start tag and end tag
  * 
  */
 public class FastaRecordReader extends RecordReader<LongWritable, Text> {
@@ -130,9 +128,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 					if (readUntilMatch(startToken2, true) || endOfFile) {
 						try {
 							key.set(fsin.getPos());
-							byte[] sequence = seqMaker.parseBufferAsText(buffer.getData(),buffer.getLength());
-							value = new Text(sequence);
-							
+							value = seqMaker.parseBufferAsText(buffer.getData(),buffer.getLength());							
 						} catch(InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}
