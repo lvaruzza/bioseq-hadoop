@@ -1,8 +1,8 @@
 package com.lifetech.hadoop.bioseq.mapreduce.input;
 
-import java.io.IOException;
+import static org.junit.Assert.assertEquals;
 
-import junit.framework.TestCase;
+import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -15,8 +15,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
-import static org.junit.Assert.*;
 
 
 public class TestFastRecordReader {
@@ -50,7 +50,8 @@ public class TestFastRecordReader {
 
 		frr.initialize(split,context);
 		frr.nextKeyValue();
-		assertEquals("487_14_960_R3\tG20112231312123121221311132212223221221222322122222",frr.getCurrentValue().toString());
+		assertEquals(new BioSeqWritable("487_14_960_R3","G20112231312123121221311132212223221221222322122222",null),
+				frr.getCurrentValue());
 	}
 
 	@Test
@@ -61,10 +62,10 @@ public class TestFastRecordReader {
 
 		frr.initialize(split,context);
 		int i = 0;
-		Text value = null;
+		BioSeqWritable value = null;
 		while(frr.nextKeyValue()) {
 			value = frr.getCurrentValue();
-			System.out.println(String.format("%d *%s*",value.getLength(),value.toString()));
+			//System.out.println(String.format("*%s*",value.toString()));
 			i++;
 			//System.out.println("\n############################################################\n");
 		}
@@ -82,18 +83,18 @@ public class TestFastRecordReader {
 		for(int i=0;i<4;i++) 
 			frr.nextKeyValue();
 			
-		Text value = frr.getCurrentValue();
+		BioSeqWritable value = frr.getCurrentValue();
 		
-		assertEquals(
-				"487_15_417_R3\tG232333300323303133222311210012332211322220221112220312021222322221322" + 
-				"3102220212220222222222022222222G10111121320333212211121121213122221212212222222222",value.toString());
+		assertEquals(new BioSeqWritable("487_15_417_R3",
+				"G232333300323303133222311210012332211322220221112220312021222322221322" + 
+				"3102220212220222222222022222222G10111121320333212211121121213122221212212222222222",null),value);
 	}
 	
 	@Test
 	public void testSplitFile() throws IOException, InterruptedException {
 		FastaRecordReader frr = new FastaRecordReader();
 		long size = fs.getFileStatus(testFile).getLen();
-		Text value = null;
+		BioSeqWritable value = null;
 
 		InputSplit split1 = new FileSplit(testFile,0,size/2,null);
 		frr.initialize(split1,context);

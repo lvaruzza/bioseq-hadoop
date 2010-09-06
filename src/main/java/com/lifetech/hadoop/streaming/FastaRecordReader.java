@@ -130,7 +130,7 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 					if (readUntilMatch(startToken2, true) || endOfFile) {
 						try {
 							key.set(fsin.getPos());
-							value.set(seqMaker.parseBufferAsText(buffer.getData(),buffer.getLength()));
+							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),value);
 						} catch (InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}

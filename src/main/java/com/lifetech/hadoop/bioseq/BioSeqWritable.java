@@ -14,13 +14,13 @@ import org.apache.hadoop.io.WritableUtils;
  * Writable Bio Seequence with id, sequence and quality
  * 
  */
-public class WritableBioSeq implements Writable,WritableComparable<WritableBioSeq> {
+public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritable> {
 
 	public static class Comparator extends WritableComparator {
 		private static final Text.Comparator TEXT_COMPARATOR = new Text.Comparator();
 
 		public Comparator() {
-			super(WritableBioSeq.class);
+			super(BioSeqWritable.class);
 		}
 
 		/* TOFINISH
@@ -54,10 +54,25 @@ public class WritableBioSeq implements Writable,WritableComparable<WritableBioSe
 	public Text sequence;
 	public Text quality;
 
-	public WritableBioSeq(Text id, Text sequence, Text quality) {
+	public BioSeqWritable(Text id, Text sequence, Text quality) {
 		this.id = id;
 		this.quality = quality;
 		this.sequence = sequence;
+	}
+
+	/*
+	 *  Mostly For debug use
+	 */
+	public BioSeqWritable(String id, String sequence, String quality) {
+		this.id = id == null ? null : new Text(id);
+		this.quality = quality == null ? null : new Text(quality);
+		this.sequence = sequence == null ? null : new Text(sequence);
+	}
+
+	public BioSeqWritable() {
+		id = null;
+		quality = null;
+		sequence = null;
 	}
 
 	@Override
@@ -106,7 +121,7 @@ public class WritableBioSeq implements Writable,WritableComparable<WritableBioSe
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		WritableBioSeq other = (WritableBioSeq) obj;
+		BioSeqWritable other = (BioSeqWritable) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;
@@ -126,7 +141,7 @@ public class WritableBioSeq implements Writable,WritableComparable<WritableBioSe
 	}
 
 	@Override
-	public int compareTo(WritableBioSeq otherSeq) {
+	public int compareTo(BioSeqWritable otherSeq) {
 		int cmp = id.compareTo(otherSeq.id);
 		if (cmp != 0) {
 			return cmp;
@@ -138,4 +153,18 @@ public class WritableBioSeq implements Writable,WritableComparable<WritableBioSe
 		return quality.compareTo(otherSeq.quality);
 	}
 
+	public void set(Text id, Text sequence, Text quality) {
+		this.id = id;
+		this.quality = quality;
+		this.sequence = sequence;
+	}
+
+	@Override
+	public String toString() {
+		if (quality == null) {
+			return String.format("%s\t%s",id,sequence);
+		} else {
+			return String.format("%s\t%s\t%s",id,sequence,quality);			
+		}
+	}
 }

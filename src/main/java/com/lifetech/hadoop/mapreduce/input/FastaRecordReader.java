@@ -8,16 +8,17 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+import com.lifetech.hadoop.bioseq.BioSeqWritable;
+
 /**
  * 
  */
-public class FastaRecordReader extends RecordReader<LongWritable, Text> {
+public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable> {
 	
 	public static final String START_TOKEN = "start.token";
 
@@ -33,7 +34,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	boolean endOfFile = false;
 
 	private LongWritable key = new LongWritable();
-	private Text value = null;
+	private BioSeqWritable value = null;
 
 	public long getPos() throws IOException {
 		return fsin.getPos();
@@ -98,7 +99,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 	}
 
 	@Override
-	public Text getCurrentValue() throws IOException, InterruptedException {
+	public BioSeqWritable getCurrentValue() throws IOException, InterruptedException {
 		return value;
 	}
 
@@ -128,7 +129,8 @@ public class FastaRecordReader extends RecordReader<LongWritable, Text> {
 					if (readUntilMatch(startToken2, true) || endOfFile) {
 						try {
 							key.set(fsin.getPos());
-							value = seqMaker.parseBufferAsText(buffer.getData(),buffer.getLength());							
+							value = new BioSeqWritable();
+							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),value);							
 						} catch(InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}

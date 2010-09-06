@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -30,10 +29,12 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
+import com.lifetech.hadoop.bioseq.BioSeqWritable;
+
 /**
  * Reads records that are delimited by a specifc begin/end tag.
  */
-public class FastaInputFormat extends FileInputFormat<LongWritable,Text> {
+public class FastaInputFormat extends FileInputFormat<LongWritable,BioSeqWritable> {
 
 	@Override
 	protected boolean isSplitable(JobContext context, Path file) {
@@ -43,7 +44,7 @@ public class FastaInputFormat extends FileInputFormat<LongWritable,Text> {
 	}
 
 	@Override
-	public RecordReader<LongWritable, Text> createRecordReader(InputSplit split,
+	public RecordReader<LongWritable, BioSeqWritable> createRecordReader(InputSplit split,
 			TaskAttemptContext context) throws IOException,
 			InterruptedException {
 

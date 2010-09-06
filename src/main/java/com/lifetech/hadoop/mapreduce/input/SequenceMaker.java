@@ -1,12 +1,11 @@
 package com.lifetech.hadoop.mapreduce.input;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 
-import com.lifetech.hadoop.bioseq.WritableBioSeq;
+import com.lifetech.hadoop.bioseq.BioSeqWritable;
 
 
 public class SequenceMaker {
@@ -38,12 +37,11 @@ public class SequenceMaker {
 	
 	private DataOutputBuffer buffer = new DataOutputBuffer();
 
-	public Text parseBufferAsText(byte[] data, int length) throws InvalidFastaRecord {
+
+	public void parseBuffer(byte[] data, int length,Text result) throws InvalidFastaRecord {
 		//DataOutputBuffer buffer = new DataOutputBuffer();
 		buffer.reset();
 		//out.println(String.format(">1|%s|1<",new String(data,0,length)));
-		Text result = new Text();
-		
 		int start = 0;
 		int end = 0;
 		
@@ -70,10 +68,9 @@ public class SequenceMaker {
 		}
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
 		result.set(buffer.getData(),0, buffer.getLength());
-		return result;
 	}
 
-	public WritableBioSeq parseBufferAsBioSeq(byte[] data, int length) throws InvalidFastaRecord {
+	public void parseBuffer(byte[] data, int length,BioSeqWritable result) throws InvalidFastaRecord {
 		//DataOutputBuffer buffer = new DataOutputBuffer();
 		Text sequence = new Text();
 		Text id = new Text();
@@ -107,9 +104,14 @@ public class SequenceMaker {
 		sequence.set(buffer.getData(), 0, buffer.getLength());
 		
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
-		return new WritableBioSeq(id,
-							sequence,
-							null);
+		result.set(id,sequence,null);
 	}
 	
+	public <T> void parseBuffer(byte[] data, int length,T result) throws InvalidFastaRecord {
+		if (result.getClass() == Text.class) {
+			parseBuffer(data,length,(Text)result); 
+		} else {
+			throw new RuntimeException("SNAFU");
+		}
+	}	
 }
