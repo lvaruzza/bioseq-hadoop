@@ -19,7 +19,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
 
 
-public class TestFastRecordReader {
+public class TestFastaRecordReader {
 	
 	private TaskAttemptContext context;
 	private Configuration config;
@@ -72,6 +72,7 @@ public class TestFastRecordReader {
 		assertEquals(495,i);
 		assertEquals("487_70_1270_R3\tG31232233030221120330213013113201232012023333001233",value.toString());
 	}
+	
 	@Test
 	public void testWholeFile_testFourth() throws IOException, InterruptedException {
 		FastaRecordReader frr = new FastaRecordReader();
@@ -125,5 +126,5 @@ public class TestFastRecordReader {
 		
 		assertEquals(495,i);
 		assertEquals("487_70_1270_R3\tG31232233030221120330213013113201232012023333001233",value.toString());		
-	}	
+	}		
 }
