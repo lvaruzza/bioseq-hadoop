@@ -9,7 +9,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 
-public class FastaRecordWriter extends RecordWriter<NullWritable,BioSeqWritable> {
+public class FastaRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 	private DataOutputStream out;
 	
 	public FastaRecordWriter(DataOutputStream out) {
@@ -24,7 +24,7 @@ public class FastaRecordWriter extends RecordWriter<NullWritable,BioSeqWritable>
 	}
 
 	@Override
-	public void write(NullWritable key, BioSeqWritable value) throws IOException, InterruptedException {
+	public void write(K key, BioSeqWritable value) throws IOException, InterruptedException {
 		if(value == null) return;
 
 		out.writeByte('>');

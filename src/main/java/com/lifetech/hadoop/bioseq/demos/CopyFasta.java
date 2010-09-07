@@ -6,32 +6,33 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 
+import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
+import com.lifetech.hadoop.mapreduce.output.FastaOutputFormat;
 
-public class FastaFileFormatApp implements Tool {
+public class CopyFasta implements Tool {
 
 	public static class CopyMapper extends
-			Mapper<LongWritable, Text, LongWritable, Text> {
+			Mapper<LongWritable, BioSeqWritable, LongWritable, BioSeqWritable> {
 
-		public void map(LongWritable key, Text value, Context context)
+		public void map(LongWritable key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
 			context.write(key, value);
 		}
 	}
 
 	public static class CopyReducer extends
-			Reducer<LongWritable, Text, LongWritable, Text> {
+			Reducer<LongWritable, BioSeqWritable, LongWritable, BioSeqWritable> {
 
-		public void reduce(LongWritable key, Iterable<Text> values,
+		public void reduce(LongWritable key, Iterable<BioSeqWritable> values,
 				Context context) throws IOException, InterruptedException {
-			for (Text val : values) {
+			for (BioSeqWritable val : values) {
 				context.write(key, val);
 			}
 		}
@@ -51,17 +52,20 @@ public class FastaFileFormatApp implements Tool {
 		}
 
 		Job job = new Job(getConf(), "FastaFormatTest");
-		job.setJarByClass(FastaFileFormatApp.class);
+		job.setJarByClass(CopyFasta.class);
 		job.setInputFormatClass(FastaInputFormat.class);
 		job.setMapperClass(CopyMapper.class);
 
 		job.setReducerClass(CopyReducer.class);
-
+		job.setMapOutputValueClass(BioSeqWritable.class);
+		job.setMapOutputKeyClass(LongWritable.class);
+		
 		job.setOutputKeyClass(LongWritable.class);
-		job.setOutputValueClass(Text.class);
-
+		job.setOutputValueClass(BioSeqWritable.class);
+		job.setOutputFormatClass(FastaOutputFormat.class);
+		
 		FastaInputFormat.setInputPaths(job, inputPath);
-		FileOutputFormat.setOutputPath(job, outputPath);
+		FastaOutputFormat.setOutputPath(job, outputPath);
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
@@ -76,7 +80,7 @@ public class FastaFileFormatApp implements Tool {
 	}
 	
 	public static void main(String[] args) {
-		Tool app = new FastaFileFormatApp();
+		Tool app = new CopyFasta();
 		app.setConf(new Configuration());
 		try {
 			app.run(args);

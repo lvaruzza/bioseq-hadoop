@@ -55,24 +55,20 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	public Text quality;
 
 	public BioSeqWritable(Text id, Text sequence, Text quality) {
-		this.id = id;
-		this.quality = quality;
-		this.sequence = sequence;
+		this.set(id,quality,sequence);
 	}
 
 	/*
 	 *  Mostly For debug use
 	 */
 	public BioSeqWritable(String id, String sequence, String quality) {
-		this.id = id == null ? null : new Text(id);
-		this.quality = quality == null ? null : new Text(quality);
-		this.sequence = sequence == null ? null : new Text(sequence);
+		this.set(id,sequence,quality);
 	}
 
 	public BioSeqWritable() {
-		id = null;
-		quality = null;
-		sequence = null;
+		id = new Text();
+		quality = new Text();
+		sequence = new Text();
 	}
 
 	@Override
@@ -154,14 +150,20 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	}
 
 	public void set(Text id, Text sequence, Text quality) {
-		this.id = id;
-		this.quality = quality;
-		this.sequence = sequence;
+		this.id = id == null ? new Text() : id;
+		this.sequence = sequence == null ? new Text() : sequence;
+		this.quality = quality == null ? new Text() : quality;
 	}
 
+	public void set(String id, String sequence, String quality) {
+		this.id = id == null ? new Text() : new Text(id);
+		this.sequence = sequence == null ? new Text() : new Text(sequence);
+		this.quality = quality == null ? new Text() : new Text(quality);
+	}
+	
 	@Override
 	public String toString() {
-		if (quality == null) {
+		if (quality.getLength() == 0) {
 			return String.format("%s\t%s",id,sequence);
 		} else {
 			return String.format("%s\t%s\t%s",id,sequence,quality);			
