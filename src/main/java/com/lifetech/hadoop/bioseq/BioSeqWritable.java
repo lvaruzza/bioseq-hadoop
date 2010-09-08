@@ -16,6 +16,9 @@ import org.apache.hadoop.io.WritableUtils;
  */
 public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritable> {
 
+	/*
+	 * TODO: finish
+	 */
 	public static class Comparator extends WritableComparator {
 		private static final Text.Comparator TEXT_COMPARATOR = new Text.Comparator();
 

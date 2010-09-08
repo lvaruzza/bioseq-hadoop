@@ -46,9 +46,9 @@ public class CopyFasta implements Tool {
 		
 		FileSystem fs = outputPath.getFileSystem(conf);
 		
-		if (fs.exists(outputPath)) {
+		/*if (fs.exists(outputPath)) {
 			fs.delete(outputPath, true);
-		}
+		}*/
 
 		Job job = new Job(getConf(), "FastaFormatTest");
 		job.setJarByClass(CopyFasta.class);

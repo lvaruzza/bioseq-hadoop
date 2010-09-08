@@ -72,6 +72,8 @@ public class SequenceMaker {
 
 	public void parseBuffer(byte[] data, int length,BioSeqWritable result) throws InvalidFastaRecord {
 		//DataOutputBuffer buffer = new DataOutputBuffer();
+		buffer.reset();
+		
 		Text sequence = new Text();
 		Text id = new Text();
 		
