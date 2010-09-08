@@ -3,7 +3,6 @@ package com.lifetech.hadoop.mapreduce.output;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
@@ -28,9 +27,9 @@ public class FastaRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 		if(value == null) return;
 
 		out.writeByte('>');
-		out.write(value.getId().getBytes());
+		out.write(value.getId().getBytes(),0,value.getId().getLength());
 		out.writeByte('\n');
-		out.write(value.getSequence().getBytes());
+		out.write(value.getSequence().getBytes(),0,value.getSequence().getLength());
 		out.writeByte('\n');
 	}
 
