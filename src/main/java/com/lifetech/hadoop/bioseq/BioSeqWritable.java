@@ -79,7 +79,6 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		id.readFields(input);
 		sequence.readFields(input);
 		quality.readFields(input);
-
 	}
 
 	@Override
