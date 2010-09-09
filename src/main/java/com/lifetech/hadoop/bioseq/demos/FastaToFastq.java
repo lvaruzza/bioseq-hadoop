@@ -41,6 +41,9 @@ public class FastaToFastq implements Tool {
 					seq = val;
 				else if (val.getType() == BioSeqWritable.BioSeqType.QualityOnly)
 					qual = val;
+				else
+					throw new RuntimeException(String.format("Invalid SeqType '%s' in sequence '%s'", 
+							val.getType().name(),val.getId().toString()));
 			}
 			context.write(key, new BioSeqWritable(key,
 									seq.getSequence(),
