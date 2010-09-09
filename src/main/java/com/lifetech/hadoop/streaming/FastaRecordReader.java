@@ -39,6 +39,18 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 
 	private JobConf jobConf;
 	
+	private boolean isQualityFasta = false;
+	
+	
+	private void setFastaTypeByExtension(Path path) {
+		if (path.getName().endsWith(".qual")) {
+			isQualityFasta = true;
+		} else {
+			isQualityFasta = false;			
+		}
+	}
+	
+	
 	public FastaRecordReader(FileSplit split,JobConf jobConf)
 				throws IOException {
 		
@@ -48,6 +60,7 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 		start = split.getStart();
 		end = start + split.getLength();
 		Path file = split.getPath();
+		setFastaTypeByExtension(file);
 		FileSystem fs = file.getFileSystem(jobConf);
 		fsin = fs.open(split.getPath());
 		fsin.seek(start);				
@@ -130,7 +143,7 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 					if (readUntilMatch(startToken2, true) || endOfFile) {
 						try {
 							key.set(fsin.getPos());
-							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),value);
+							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),isQualityFasta,value);
 						} catch (InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}

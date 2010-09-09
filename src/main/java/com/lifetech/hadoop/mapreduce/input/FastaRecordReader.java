@@ -103,6 +103,16 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 		return value;
 	}
 
+	private boolean isQualityFasta = false;
+	
+	private void setFastaTypeByExtension(Path path) {
+		if (path.getName().endsWith(".qual")) {
+			isQualityFasta = true;
+		} else {
+			isQualityFasta = false;			
+		}
+	}
+	
 	@Override
 	public void initialize(InputSplit split0, TaskAttemptContext context)
 			throws IOException, InterruptedException {
@@ -115,6 +125,9 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 		start = split.getStart();
 		end = start + split.getLength();
 		Path file = split.getPath();
+		
+		setFastaTypeByExtension(file);
+		
 		FileSystem fs = file.getFileSystem(jobConf);
 		fsin = fs.open(split.getPath());
 		fsin.seek(start);		
@@ -130,7 +143,8 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 						try {
 							key.set(fsin.getPos());
 							value = new BioSeqWritable();
-							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),value);							
+							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),
+										isQualityFasta,value);							
 						} catch(InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}

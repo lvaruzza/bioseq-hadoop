@@ -38,7 +38,7 @@ public class SequenceMaker {
 	private DataOutputBuffer buffer = new DataOutputBuffer();
 
 
-	public void parseBuffer(byte[] data, int length,Text result) throws InvalidFastaRecord {
+	public void parseBuffer(byte[] data, int length,boolean isQualityFasta,Text result) throws InvalidFastaRecord {
 		//DataOutputBuffer buffer = new DataOutputBuffer();
 		buffer.reset();
 		//out.println(String.format(">1|%s|1<",new String(data,0,length)));
@@ -70,7 +70,7 @@ public class SequenceMaker {
 		result.set(buffer.getData(),0, buffer.getLength());
 	}
 
-	public void parseBuffer(byte[] data, int length,BioSeqWritable result) throws InvalidFastaRecord {
+	public void parseBuffer(byte[] data, int length,boolean isQualityFasta,BioSeqWritable result) throws InvalidFastaRecord {
 		//DataOutputBuffer buffer = new DataOutputBuffer();
 		buffer.reset();
 		
@@ -106,14 +106,10 @@ public class SequenceMaker {
 		sequence.set(buffer.getData(), 0, buffer.getLength());
 		
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
-		result.set(id,sequence,null);
-	}
-	
-	public <T> void parseBuffer(byte[] data, int length,T result) throws InvalidFastaRecord {
-		if (result.getClass() == Text.class) {
-			parseBuffer(data,length,(Text)result); 
+		if (isQualityFasta) {
+			result.set(id,null,sequence);
 		} else {
-			throw new RuntimeException("SNAFU");
+			result.set(id,sequence,null);
 		}
-	}	
+	}
 }
