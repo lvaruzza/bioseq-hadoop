@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
@@ -56,7 +57,11 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	public Text id;
 	public Text sequence;
 	public Text quality;
-
+	private IntWritable type = new IntWritable();
+	
+	public enum BioSeqType {Empty,Complete,QualityOnly,SequenceOnly};
+	
+	
 	public BioSeqWritable(Text id, Text sequence, Text quality) {
 		this.set(id,quality,sequence);
 	}
@@ -72,6 +77,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		id = new Text();
 		quality = new Text();
 		sequence = new Text();
+		type.set(BioSeqType.Empty.ordinal());
 	}
 
 	@Override
@@ -79,6 +85,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		id.readFields(input);
 		sequence.readFields(input);
 		quality.readFields(input);
+		type.readFields(input);
 	}
 
 	@Override
@@ -86,6 +93,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		id.write(output);
 		sequence.write(output);
 		quality.write(output);
+		type.write(output);
 	}
 
 	public Text getId() {
@@ -100,6 +108,10 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		return quality;
 	}
 
+	public BioSeqType getType() {
+		return BioSeqType.values()[type.get()];
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -152,12 +164,40 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	}
 
 	public void set(Text id, Text sequence, Text quality) {
+		if (quality == null) {
+			if (sequence == null) {
+				type.set(BioSeqType.Empty.ordinal());
+			} else {
+				type.set(BioSeqType.SequenceOnly.ordinal());				
+			}
+		} else {
+			if (sequence == null) {
+				type.set(BioSeqType.QualityOnly.ordinal());				
+			} else {
+				type.set(BioSeqType.Complete.ordinal());								
+			}
+		}
+		
 		this.id = id == null ? new Text() : id;
 		this.sequence = sequence == null ? new Text() : sequence;
 		this.quality = quality == null ? new Text() : quality;
 	}
 
 	public void set(String id, String sequence, String quality) {
+		if (quality == null) {
+			if (sequence == null) {
+				type.set(BioSeqType.Empty.ordinal());
+			} else {
+				type.set(BioSeqType.SequenceOnly.ordinal());				
+			}
+		} else {
+			if (sequence == null) {
+				type.set(BioSeqType.QualityOnly.ordinal());				
+			} else {
+				type.set(BioSeqType.Complete.ordinal());								
+			}
+		}
+
 		this.id = id == null ? new Text() : new Text(id);
 		this.sequence = sequence == null ? new Text() : new Text(sequence);
 		this.quality = quality == null ? new Text() : new Text(quality);

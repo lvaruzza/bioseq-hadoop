@@ -6,34 +6,45 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
+import com.lifetech.hadoop.bioseq.demos.CopyFasta.CopyMapper;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
-import com.lifetech.hadoop.mapreduce.output.FastaOutputFormat;
+import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
-public class CopyFasta implements Tool {
+public class FastaToFastq implements Tool {
 
-	public static class CopyMapper extends
-			Mapper<LongWritable, BioSeqWritable, LongWritable, BioSeqWritable> {
+	public static class CopyMapperWithId extends
+			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {
 
 		public void map(LongWritable key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
-			context.write(key, value);
+			context.write(value.getId(), value);
 		}
 	}
 
 	public static class CopyReducer extends
-			Reducer<LongWritable, BioSeqWritable, LongWritable, BioSeqWritable> {
+			Reducer<Text, BioSeqWritable, Text, BioSeqWritable> {
 
-		public void reduce(LongWritable key, Iterable<BioSeqWritable> values,
+		public void reduce(Text key, Iterable<BioSeqWritable> values,
 				Context context) throws IOException, InterruptedException {
+			BioSeqWritable seq = null;
+			BioSeqWritable qual = null;
+			
 			for (BioSeqWritable val : values) {
-				context.write(key, val);
+				if (val.getType() == BioSeqWritable.BioSeqType.SequenceOnly)
+					seq = val;
+				else if (val.getType() == BioSeqWritable.BioSeqType.QualityOnly)
+					qual = val;
 			}
+			context.write(key, new BioSeqWritable(key,
+									seq.getSequence(),
+									qual.getQuality()));
 		}
 	}
 
@@ -41,8 +52,9 @@ public class CopyFasta implements Tool {
 
 	@Override
 	public int run(String[] args) throws Exception {
-		Path inputPath = new Path(args[0]);
-		Path outputPath = new Path(args[1]);
+		Path fastaPath = new Path(args[0]);
+		Path qualPath = new Path(args[1]);
+		Path outputPath = new Path(args[2]);
 		
 		FileSystem fs = outputPath.getFileSystem(conf);
 		
@@ -50,8 +62,8 @@ public class CopyFasta implements Tool {
 			fs.delete(outputPath, true);
 		}*/
 
-		Job job = new Job(getConf(), "CopyFasta");
-		job.setJarByClass(CopyFasta.class);
+		Job job = new Job(getConf(), "FastaToFastq");
+		job.setJarByClass(FastaToFastq.class);
 		job.setInputFormatClass(FastaInputFormat.class);
 		job.setMapperClass(CopyMapper.class);
 
@@ -62,10 +74,10 @@ public class CopyFasta implements Tool {
 		
 		job.setOutputKeyClass(LongWritable.class);
 		job.setOutputValueClass(BioSeqWritable.class);
-		job.setOutputFormatClass(FastaOutputFormat.class);
+		job.setOutputFormatClass(FastqOutputFormat.class);
 		
-		FastaInputFormat.setInputPaths(job, inputPath);
-		FastaOutputFormat.setOutputPath(job, outputPath);
+		FastaInputFormat.setInputPaths(job, fastaPath,qualPath);
+		FastqOutputFormat.setOutputPath(job, outputPath);
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
@@ -80,7 +92,7 @@ public class CopyFasta implements Tool {
 	}
 	
 	public static void main(String[] args) {
-		Tool app = new CopyFasta();
+		Tool app = new FastaToFastq();
 		app.setConf(new Configuration());
 		try {
 			app.run(args);
