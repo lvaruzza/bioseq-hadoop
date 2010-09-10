@@ -28,7 +28,9 @@ public class FastaToFastq implements Tool {
 		}
 	}
 
-	public static class CopyReducer extends
+	private static Text empty = new Text("");
+	
+	public static class MergeReducer extends
 			Reducer<Text, BioSeqWritable, Text, BioSeqWritable> {
 
 		public void reduce(Text key, Iterable<BioSeqWritable> values,
@@ -45,9 +47,11 @@ public class FastaToFastq implements Tool {
 					throw new RuntimeException(String.format("Invalid SeqType '%s' in sequence '%s'", 
 							val.getType().name(),val.getId().toString()));
 			}
-			context.write(key, new BioSeqWritable(key,
-									seq.getSequence(),
-									qual.getQuality()));
+			
+			context.write(empty, new BioSeqWritable(
+					new Text(key.toString()),
+					seq.getSequence(),
+					qual.getQuality()));
 		}
 	}
 
@@ -68,14 +72,14 @@ public class FastaToFastq implements Tool {
 		Job job = new Job(getConf(), "FastaToFastq");
 		job.setJarByClass(FastaToFastq.class);
 		job.setInputFormatClass(FastaInputFormat.class);
-		job.setMapperClass(CopyMapper.class);
+		job.setMapperClass(CopyMapperWithId.class);
 
-		job.setReducerClass(CopyReducer.class);
+		job.setReducerClass(MergeReducer.class);
 		
 		job.setMapOutputValueClass(BioSeqWritable.class);
-		job.setMapOutputKeyClass(LongWritable.class);
+		job.setMapOutputKeyClass(Text.class);
 		
-		job.setOutputKeyClass(LongWritable.class);
+		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(BioSeqWritable.class);
 		job.setOutputFormatClass(FastqOutputFormat.class);
 		

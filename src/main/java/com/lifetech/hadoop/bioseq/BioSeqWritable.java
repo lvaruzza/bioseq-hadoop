@@ -63,7 +63,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	
 	
 	public BioSeqWritable(Text id, Text sequence, Text quality) {
-		this.set(id,quality,sequence);
+		this.set(id,sequence,quality);
 	}
 
 	/*
@@ -112,6 +112,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		return BioSeqType.values()[type.get()];
 	}
 	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -120,6 +121,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		result = prime * result + ((quality == null) ? 0 : quality.hashCode());
 		result = prime * result
 				+ ((sequence == null) ? 0 : sequence.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
 
@@ -147,6 +149,11 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 				return false;
 		} else if (!sequence.equals(other.sequence))
 			return false;
+		if (type == null) {
+			if (other.type != null)
+				return false;
+		} else if (!type.equals(other.type))
+			return false;
 		return true;
 	}
 
@@ -156,27 +163,38 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		if (cmp != 0) {
 			return cmp;
 		}
+		cmp = type.compareTo(otherSeq.type);
+		if (cmp != 0) {
+			return cmp;
+		}
 		cmp = sequence.compareTo(otherSeq.sequence);
 		if (cmp != 0) {
 			return cmp;
 		}
 		return quality.compareTo(otherSeq.quality);
 	}
-
-	public void set(Text id, Text sequence, Text quality) {
-		if (quality == null) {
-			if (sequence == null) {
+	
+	private void setType(boolean qualIsNull,boolean seqIsNull) {
+		if (qualIsNull) {
+			if (seqIsNull) {
 				type.set(BioSeqType.Empty.ordinal());
 			} else {
 				type.set(BioSeqType.SequenceOnly.ordinal());				
 			}
 		} else {
-			if (sequence == null) {
+			if (seqIsNull) {
 				type.set(BioSeqType.QualityOnly.ordinal());				
 			} else {
 				type.set(BioSeqType.Complete.ordinal());								
 			}
-		}
+		}		
+	}
+
+	private static Text emptyText = new Text("");
+	
+	public void set(Text id, Text sequence, Text quality) {
+		setType(quality==null || quality.equals(emptyText),
+				sequence==null || sequence.equals(emptyText));
 		
 		this.id = id == null ? new Text() : id;
 		this.sequence = sequence == null ? new Text() : sequence;
@@ -184,19 +202,8 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	}
 
 	public void set(String id, String sequence, String quality) {
-		if (quality == null) {
-			if (sequence == null) {
-				type.set(BioSeqType.Empty.ordinal());
-			} else {
-				type.set(BioSeqType.SequenceOnly.ordinal());				
-			}
-		} else {
-			if (sequence == null) {
-				type.set(BioSeqType.QualityOnly.ordinal());				
-			} else {
-				type.set(BioSeqType.Complete.ordinal());								
-			}
-		}
+		setType(quality==null || quality.equals(""),
+				sequence==null || sequence.equals(""));
 
 		this.id = id == null ? new Text() : new Text(id);
 		this.sequence = sequence == null ? new Text() : new Text(sequence);

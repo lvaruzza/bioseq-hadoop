@@ -6,6 +6,7 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
+import com.lifetech.utils.FastqUtils;
 
 
 public class SequenceMaker {
@@ -107,7 +108,7 @@ public class SequenceMaker {
 		
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
 		if (isQualityFasta) {
-			result.set(id,null,sequence);
+			result.set(id,null,new Text(FastqUtils.convertPhredQualtity(sequence.toString())));
 		} else {
 			result.set(id,sequence,null);
 		}

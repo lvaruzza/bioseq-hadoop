@@ -25,6 +25,7 @@ public class TestFastaRecordReader {
 	private Configuration config;
 	private FileSystem fs;
 	private static Path testFile = new Path("data/test1/input.fasta");
+	private static Path testQualFile = new Path("data/fastaqual/F3.qual");
 	
 	@Before
 	public void initialize() throws IOException {
@@ -50,6 +51,8 @@ public class TestFastaRecordReader {
 
 		frr.initialize(split,context);
 		frr.nextKeyValue();
+		assertEquals(BioSeqWritable.BioSeqType.SequenceOnly,frr.getCurrentValue().getType());
+		
 		assertEquals(new BioSeqWritable("487_14_960_R3","G20112231312123121221311132212223221221222322122222",null),
 				frr.getCurrentValue());
 	}
@@ -127,4 +130,21 @@ public class TestFastaRecordReader {
 		assertEquals(495,i);
 		assertEquals("487_70_1270_R3\tG31232233030221120330213013113201232012023333001233",value.toString());		
 	}		
+
+	@Test
+	public void testWholeFile_Qual_testFirst() throws IOException, InterruptedException {
+		FastaRecordReader frr = new FastaRecordReader();
+		long size = fs.getFileStatus(testQualFile).getLen();
+		InputSplit split = new FileSplit(testQualFile,0,size,null);
+
+		frr.initialize(split,context);
+		frr.nextKeyValue();
+
+		assertEquals(BioSeqWritable.BioSeqType.QualityOnly,frr.getCurrentValue().getType());		
+		assertEquals(new BioSeqWritable("469_26_42_F3",null,
+				"4))+()1+&1').'.(&046&',&&*&)'%'&&'&&4(+((&')8&-%/*"),
+				frr.getCurrentValue());
+	}
+
+
 }

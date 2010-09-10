@@ -30,6 +30,7 @@ public class FastqRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 		out.write(value.getId().getBytes());
 		out.writeByte('\n');
 		out.write(value.getSequence().getBytes());
+		out.writeByte('\n');
 		out.writeBytes("+\n");
 		out.write(value.getQuality().getBytes());
 		out.writeByte('\n');
