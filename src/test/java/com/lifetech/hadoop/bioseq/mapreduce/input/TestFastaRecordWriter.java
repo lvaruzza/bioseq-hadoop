@@ -40,7 +40,7 @@ public class TestFastaRecordWriter {
 	public void testWholeFile_testFirst() throws IOException, InterruptedException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
-		FastaRecordReader frr = new FastaRecordReader();
+		FastaRecordReader frr = new FastaRecordReader(true);
 		FastaRecordWriter<NullWritable> frw = new FastaRecordWriter<NullWritable>(new DataOutputStream(out));
 		
 		long size = fs.getFileStatus(testFile).getLen();

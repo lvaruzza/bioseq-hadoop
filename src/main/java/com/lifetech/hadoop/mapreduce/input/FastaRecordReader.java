@@ -36,6 +36,10 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 	private LongWritable key = new LongWritable();
 	private BioSeqWritable value = null;
 
+	public FastaRecordReader(boolean colorSpace) {
+		this.colorSpace = colorSpace;
+	}
+	
 	public long getPos() throws IOException {
 		return fsin.getPos();
 	}
@@ -105,6 +109,15 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 
 	private boolean isQualityFasta = false;
 	
+	private boolean colorSpace = false;
+	
+	public void setColorSpace(boolean val) {
+		colorSpace = val;
+	}
+	
+	/*
+	 * TODO: Create a more flexible way to deal with fasta types
+	 */
 	private void setFastaTypeByExtension(Path path) {
 		if (path.getName().endsWith(".qual")) {
 			isQualityFasta = true;
@@ -112,6 +125,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 			isQualityFasta = false;			
 		}
 	}
+
 	
 	@Override
 	public void initialize(InputSplit split0, TaskAttemptContext context)
@@ -144,7 +158,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 							key.set(fsin.getPos());
 							value = new BioSeqWritable();
 							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),
-										isQualityFasta,value);							
+										isQualityFasta,colorSpace,value);							
 						} catch(InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}

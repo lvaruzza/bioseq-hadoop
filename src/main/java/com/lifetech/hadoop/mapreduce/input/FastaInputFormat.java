@@ -47,7 +47,8 @@ public class FastaInputFormat extends FileInputFormat<LongWritable,BioSeqWritabl
 	public RecordReader<LongWritable, BioSeqWritable> createRecordReader(InputSplit split,
 			TaskAttemptContext context) throws IOException,
 			InterruptedException {
-
-		return new FastaRecordReader();
+		
+		boolean colorSpace = context.getConfiguration().get("bioseq.colorSpaceInput").equals("true");
+		return new FastaRecordReader(colorSpace);
 	}
 }

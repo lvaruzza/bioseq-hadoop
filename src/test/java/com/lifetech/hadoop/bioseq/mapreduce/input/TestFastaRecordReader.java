@@ -37,7 +37,7 @@ public class TestFastaRecordReader {
 	
 	@Test
 	public void testCreation() throws IOException, InterruptedException {
-		FastaRecordReader frr = new FastaRecordReader();
+		FastaRecordReader frr = new FastaRecordReader(true);
 
 		InputSplit split = new FileSplit(testFile,0,100,null);
 		frr.initialize(split,context);
@@ -45,7 +45,7 @@ public class TestFastaRecordReader {
 	
 	@Test
 	public void testWholeFile_testFirst() throws IOException, InterruptedException {
-		FastaRecordReader frr = new FastaRecordReader();
+		FastaRecordReader frr = new FastaRecordReader(true);
 		long size = fs.getFileStatus(testFile).getLen();
 		InputSplit split = new FileSplit(testFile,0,size,null);
 
@@ -59,7 +59,7 @@ public class TestFastaRecordReader {
 
 	@Test
 	public void testWholeFile_testLast() throws IOException, InterruptedException {
-		FastaRecordReader frr = new FastaRecordReader();
+		FastaRecordReader frr = new FastaRecordReader(true);
 		long size = fs.getFileStatus(testFile).getLen();
 		InputSplit split = new FileSplit(testFile,0,size,null);
 
@@ -78,7 +78,7 @@ public class TestFastaRecordReader {
 	
 	@Test
 	public void testWholeFile_testFourth() throws IOException, InterruptedException {
-		FastaRecordReader frr = new FastaRecordReader();
+		FastaRecordReader frr = new FastaRecordReader(true);
 		long size = fs.getFileStatus(testFile).getLen();
 		InputSplit split = new FileSplit(testFile,0,size,null);
 
@@ -96,7 +96,7 @@ public class TestFastaRecordReader {
 	
 	@Test
 	public void testSplitFile() throws IOException, InterruptedException {
-		FastaRecordReader frr = new FastaRecordReader();
+		FastaRecordReader frr = new FastaRecordReader(true);
 		long size = fs.getFileStatus(testFile).getLen();
 		BioSeqWritable value = null;
 
@@ -133,7 +133,7 @@ public class TestFastaRecordReader {
 
 	@Test
 	public void testWholeFile_Qual_testFirst() throws IOException, InterruptedException {
-		FastaRecordReader frr = new FastaRecordReader();
+		FastaRecordReader frr = new FastaRecordReader(true);
 		long size = fs.getFileStatus(testQualFile).getLen();
 		InputSplit split = new FileSplit(testQualFile,0,size,null);
 
@@ -142,7 +142,7 @@ public class TestFastaRecordReader {
 
 		assertEquals(BioSeqWritable.BioSeqType.QualityOnly,frr.getCurrentValue().getType());		
 		assertEquals(new BioSeqWritable("469_26_42_F3",null,
-				"4))+()1+&1').'.(&046&',&&*&)'%'&&'&&4(+((&')8&-%/*"),
+				"!4))+()1+&1').'.(&046&',&&*&)'%'&&'&&4(+((&')8&-%/*"),
 				frr.getCurrentValue());
 	}
 

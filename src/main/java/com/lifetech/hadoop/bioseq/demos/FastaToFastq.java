@@ -13,7 +13,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
-import com.lifetech.hadoop.bioseq.demos.CopyFasta.CopyMapper;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
@@ -35,23 +34,23 @@ public class FastaToFastq implements Tool {
 
 		public void reduce(Text key, Iterable<BioSeqWritable> values,
 				Context context) throws IOException, InterruptedException {
-			BioSeqWritable seq = null;
-			BioSeqWritable qual = null;
+			Text seq = null;
+			Text qual = null;
 			
 			for (BioSeqWritable val : values) {
 				if (val.getType() == BioSeqWritable.BioSeqType.SequenceOnly)
-					seq = val;
+					seq = new Text(val.getSequence());
 				else if (val.getType() == BioSeqWritable.BioSeqType.QualityOnly)
-					qual = val;
+					qual = new Text(val.getQuality());
 				else
 					throw new RuntimeException(String.format("Invalid SeqType '%s' in sequence '%s'", 
 							val.getType().name(),val.getId().toString()));
 			}
 			
 			context.write(empty, new BioSeqWritable(
-					new Text(key.toString()),
-					seq.getSequence(),
-					qual.getQuality()));
+					key,
+					seq == null ? null : seq,
+					qual == null ? null : qual));
 		}
 	}
 
@@ -63,13 +62,20 @@ public class FastaToFastq implements Tool {
 		Path qualPath = new Path(args[1]);
 		Path outputPath = new Path(args[2]);
 		
-		FileSystem fs = outputPath.getFileSystem(conf);
-		
+		//FileSystem fs = outputPath.getFileSystem(conf);		
 		/*if (fs.exists(outputPath)) {
 			fs.delete(outputPath, true);
 		}*/
 
+		
 		Job job = new Job(getConf(), "FastaToFastq");
+		
+		if (fastaPath.getName().endsWith(".csfasta")) {
+			System.out.println("Color Space Fasta");
+			job.getConfiguration().set("bioseq.colorSpaceInput", "true");
+		}
+				
+		
 		job.setJarByClass(FastaToFastq.class);
 		job.setInputFormatClass(FastaInputFormat.class);
 		job.setMapperClass(CopyMapperWithId.class);
@@ -82,8 +88,9 @@ public class FastaToFastq implements Tool {
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(BioSeqWritable.class);
 		job.setOutputFormatClass(FastqOutputFormat.class);
-		
+
 		FastaInputFormat.setInputPaths(job, fastaPath,qualPath);
+		//FastaInputFormat.setInputPaths(job,qualPath);
 		FastqOutputFormat.setOutputPath(job, outputPath);
 		return job.waitForCompletion(true) ? 0 : 1;
 	}

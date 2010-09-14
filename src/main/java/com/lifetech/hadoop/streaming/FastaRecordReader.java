@@ -40,15 +40,24 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 	private JobConf jobConf;
 	
 	private boolean isQualityFasta = false;
+	private boolean colorSpace = false;
 	
-	
+	/*
+	 * TODO: Create a more flexible way to deal with fasta types
+	 */
 	private void setFastaTypeByExtension(Path path) {
 		if (path.getName().endsWith(".qual")) {
 			isQualityFasta = true;
 		} else {
 			isQualityFasta = false;			
+			if (path.getName().endsWith(".csfasta")) {
+				colorSpace = true;
+			} else {
+				colorSpace = false;				
+			}
 		}
 	}
+	
 	
 	
 	public FastaRecordReader(FileSplit split,JobConf jobConf)
@@ -143,7 +152,12 @@ public class FastaRecordReader implements RecordReader<LongWritable, Text> {
 					if (readUntilMatch(startToken2, true) || endOfFile) {
 						try {
 							key.set(fsin.getPos());
-							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),isQualityFasta,value);
+							seqMaker.parseBuffer(
+										buffer.getData(),
+										buffer.getLength(),
+										isQualityFasta,
+										colorSpace,
+										value);
 						} catch (InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}
