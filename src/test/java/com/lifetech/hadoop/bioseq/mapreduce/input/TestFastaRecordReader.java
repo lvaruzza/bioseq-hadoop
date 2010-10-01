@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
@@ -17,6 +16,7 @@ import org.junit.Test;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
+import com.lifetech.utils.FastqUtils;
 
 
 public class TestFastaRecordReader {
@@ -142,7 +142,7 @@ public class TestFastaRecordReader {
 
 		assertEquals(BioSeqWritable.BioSeqType.QualityOnly,frr.getCurrentValue().getType());		
 		assertEquals(new BioSeqWritable("469_26_42_F3",null,
-				"!4))+()1+&1').'.(&046&',&&*&)'%'&&'&&4(+((&')8&-%/*"),
+				FastqUtils.fastqBinary("!4))+()1+&1').'.(&046&',&&*&)'%'&&'&&4(+((&')8&-%/*")),
 				frr.getCurrentValue());
 	}
 

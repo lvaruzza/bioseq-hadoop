@@ -2,6 +2,7 @@ package com.lifetech.hadoop.mapreduce.input;
 
 import java.io.IOException;
 
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 
@@ -110,7 +111,7 @@ public class SequenceMaker {
 		
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
 		if (isQualityFasta) {
-			result.set(id,null,new Text(FastqUtils.convertPhredQualtity(sequence.toString(),colorSpace)));
+			result.set(id,null,new BytesWritable(FastqUtils.convertPhredQualtityBinary(sequence.toString(),colorSpace)));
 		} else {
 			result.set(id,sequence,null);
 		}

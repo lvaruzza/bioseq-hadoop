@@ -8,6 +8,7 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
+import com.lifetech.utils.FastqUtils;
 
 public class FastqRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 	private DataOutputStream out;
@@ -37,7 +38,7 @@ public class FastqRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 		writeText(value.getSequence());
 		out.writeByte('\n');
 		out.writeBytes("+\n");
-		writeText(value.getQuality());
+		writeText(FastqUtils.fastqQuality(value.getQuality()));
 		out.writeByte('\n');
 	}
 

@@ -4,6 +4,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.apache.hadoop.io.ByteWritable;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
@@ -56,26 +58,26 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 
 	public Text id;
 	public Text sequence;
-	public Text quality;
+	public BytesWritable quality;
 	private IntWritable type = new IntWritable();
 	
 	public enum BioSeqType {Empty,Complete,QualityOnly,SequenceOnly};
 	
 	
-	public BioSeqWritable(Text id, Text sequence, Text quality) {
+	public BioSeqWritable(Text id, Text sequence, BytesWritable quality) {
 		this.set(id,sequence,quality);
 	}
 
 	/*
 	 *  Mostly For debug use
 	 */
-	public BioSeqWritable(String id, String sequence, String quality) {
+	public BioSeqWritable(String id, String sequence, byte[] quality) {
 		this.set(id,sequence,quality);
 	}
 
 	public BioSeqWritable() {
 		id = new Text();
-		quality = new Text();
+		quality = new BytesWritable();
 		sequence = new Text();
 		type.set(BioSeqType.Empty.ordinal());
 	}
@@ -104,7 +106,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		return sequence;
 	}
 
-	public Text getQuality() {
+	public BytesWritable getQuality() {
 		return quality;
 	}
 
@@ -192,22 +194,22 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 
 	private static Text emptyText = new Text("");
 	
-	public void set(Text id, Text sequence, Text quality) {
+	public void set(Text id, Text sequence, BytesWritable quality) {
 		setType(quality==null || quality.equals(emptyText),
 				sequence==null || sequence.equals(emptyText));
 		
 		this.id = id == null ? new Text() : id;
 		this.sequence = sequence == null ? new Text() : sequence;
-		this.quality = quality == null ? new Text() : quality;
+		this.quality = quality == null ? new BytesWritable() : quality;
 	}
 
-	public void set(String id, String sequence, String quality) {
+	public void set(String id, String sequence, byte[] quality) {
 		setType(quality==null || quality.equals(""),
 				sequence==null || sequence.equals(""));
 
 		this.id = id == null ? new Text() : new Text(id);
 		this.sequence = sequence == null ? new Text() : new Text(sequence);
-		this.quality = quality == null ? new Text() : new Text(quality);
+		this.quality = quality == null ? new BytesWritable() : new BytesWritable(quality);
 	}
 	
 	@Override

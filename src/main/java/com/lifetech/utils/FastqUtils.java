@@ -1,5 +1,8 @@
 package com.lifetech.utils;
 
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.Text;
+
 public class FastqUtils {
 	public static char sangerQuality(int qual) {
 		if (qual > 93)
@@ -9,6 +12,17 @@ public class FastqUtils {
 		
 		
 		return  (char) (qual+33);
+	}
+
+	public static Text fastqQuality(BytesWritable quality) {
+		int size = quality.getLength();
+		byte[] in=quality.getBytes();
+		byte[] result = new byte[size];
+		
+		for(int i=0;i<size;i++) {
+			result[i] = (byte) (in[i] + 33);
+		}
+		return new Text(result);
 	}
 	
 	public static String convertPhredQualtity(String phred,boolean colorSpace) {
@@ -36,4 +50,43 @@ public class FastqUtils {
 		}
 		return new String(result);
 	}
+	
+	
+	public static byte[] convertPhredQualtityBinary(String phred,boolean colorSpace) {
+		if (colorSpace)
+			return convertPhredQualtityColorSpaceBinary(phred);
+		else
+			return convertPhredQualtityBaseSpaceBinary(phred);			
+	}
+	
+	public static byte[] convertPhredQualtityColorSpaceBinary(String phred) {
+		String [] quals=phred.split(" +");
+		byte[] result = new byte[quals.length+1];
+		result[0] = 0;
+		for(int i=0;i<quals.length;i++) {
+			result[i+1] = (byte) Integer.parseInt(quals[i]);
+		}
+		return result;	
+	}
+	
+	public static byte[] convertPhredQualtityBaseSpaceBinary(String phred) {
+		String [] quals=phred.split(" +");
+		byte[] result = new byte[quals.length];
+		for(int i=0;i<quals.length;i++) {
+			result[i] = (byte) Integer.parseInt(quals[i]);
+		}
+		return result;
+	}
+
+	public static byte[] fastqBinary(String fastqQual) {
+		int size = fastqQual.length();
+		byte[] qual = fastqQual.getBytes();
+		byte[] result = new byte[size];
+		
+		for(int i=0;i<size;i++) {
+			result[i]=(byte)(qual[i]-33);
+		}
+		return result;
+	}
+	
 }

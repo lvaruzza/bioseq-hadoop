@@ -3,8 +3,8 @@ package com.lifetech.hadoop.bioseq.demos;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -35,13 +35,13 @@ public class FastaToFastq implements Tool {
 		public void reduce(Text key, Iterable<BioSeqWritable> values,
 				Context context) throws IOException, InterruptedException {
 			Text seq = null;
-			Text qual = null;
+			BytesWritable qual = null;
 			
 			for (BioSeqWritable val : values) {
 				if (val.getType() == BioSeqWritable.BioSeqType.SequenceOnly)
 					seq = new Text(val.getSequence());
 				else if (val.getType() == BioSeqWritable.BioSeqType.QualityOnly)
-					qual = new Text(val.getQuality());
+					qual = val.getQuality();
 				else
 					throw new RuntimeException(String.format("Invalid SeqType '%s' in sequence '%s'", 
 							val.getType().name(),val.getId().toString()));
