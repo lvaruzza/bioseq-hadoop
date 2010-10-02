@@ -34,14 +34,14 @@ public class FastaToFastq implements Tool {
 
 		public void reduce(Text key, Iterable<BioSeqWritable> values,
 				Context context) throws IOException, InterruptedException {
-			Text seq = null;
-			BytesWritable qual = null;
+			Text seq = new Text();
+			BytesWritable qual = new BytesWritable();
 			
 			for (BioSeqWritable val : values) {
 				if (val.getType() == BioSeqWritable.BioSeqType.SequenceOnly)
-					seq = new Text(val.getSequence());
+					seq.set(val.getSequence());
 				else if (val.getType() == BioSeqWritable.BioSeqType.QualityOnly)
-					qual = val.getQuality();
+					qual.set(val.getQuality());
 				else
 					throw new RuntimeException(String.format("Invalid SeqType '%s' in sequence '%s'", 
 							val.getType().name(),val.getId().toString()));
