@@ -68,7 +68,7 @@ public class FastaToFastq implements Tool {
 		}*/
 
 		
-		Job job = new Job(getConf(), "FastaToFastq");
+		Job job = new Job(getConf(), "FastaToSequenceFile");
 		
 		if (fastaPath.getName().endsWith(".csfasta")) {
 			System.out.println("Color Space Fasta");
