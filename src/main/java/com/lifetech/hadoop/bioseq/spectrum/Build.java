@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -13,6 +15,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import com.hadoop.compression.lzo.LzoCodec;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 
 public class Build extends Configured implements Tool {
@@ -31,7 +34,7 @@ public class Build extends Configured implements Tool {
 			Text seq = value.getSequence();
 			int size = seq.getLength();
 			byte[] data = seq.getBytes();
-			for (int i = 0; i < size - k; i++) {
+			for (int i = 1; i < size - k; i++) {
 				kmer.set(data, i, k);
 				tracking.set(value.getId(), i);
 				context.write(kmer, tracking);
@@ -68,13 +71,15 @@ public class Build extends Configured implements Tool {
 		job.setMapperClass(KmerBuilder.class);
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(KmerTracking.class);
-
+		job.setCombinerClass(MergeReducer.class);
 		job.setReducerClass(MergeReducer.class);
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(KmerTracking.class);
-
+		getConf().setBoolean("mapred.output.compress", true);
+		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
+		
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		SequenceFileOutputFormat.setOutputPath(job, outputPath);
+		SequenceFileOutputFormat.setCompressOutput(job, true);
+		SequenceFileOutputFormat.setOutputCompressorClass(job, LzoCodec.class);
 
 		return job.waitForCompletion(true) ? 0 : 1;
 	}

@@ -7,6 +7,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -14,6 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import com.hadoop.compression.lzo.LzoCodec;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 
@@ -69,19 +72,23 @@ public class FastaToSequenceFile extends Configured implements Tool {
 		
 		job.setJarByClass(FastaToSequenceFile.class);
 		job.setInputFormatClass(FastaInputFormat.class);
-		job.setMapperClass(CopyMapperWithId.class);
+		FastaInputFormat.setInputPaths(job, fastaPath,qualPath);
 
-		job.setReducerClass(MergeReducer.class);
-		
+		job.setMapperClass(CopyMapperWithId.class);
 		job.setMapOutputValueClass(BioSeqWritable.class);
 		job.setMapOutputKeyClass(Text.class);
-		
+		getConf().setBoolean("mapred.output.compress", true);
+		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
+
+		job.setReducerClass(MergeReducer.class);			
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(BioSeqWritable.class);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-		FastaInputFormat.setInputPaths(job, fastaPath,qualPath);
 		SequenceFileOutputFormat.setOutputPath(job, outputPath);
+		SequenceFileOutputFormat.setCompressOutput(job, true);
+		SequenceFileOutputFormat.setOutputCompressorClass(job, BZip2Codec.class);
+		
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 

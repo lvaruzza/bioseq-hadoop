@@ -26,13 +26,7 @@ public class DumpKmers {
 			KmerTracking value = new KmerTracking();
 			
 			while (reader.next(key, value)) {
-				Writable[] origs= value.get();
-
-				System.out.printf("%s = %d\n",key,origs.length);
-				for(Writable orig: origs) {
-					KmerOrig orig0 = (KmerOrig)orig;
-					System.out.printf("\t%s(%d)\n",orig0.getReadName(),orig0.getPosition().get());
-				}
+				System.out.printf("%s\t%d\n",key,value.get().length);
 			}
 		} finally {
 			IOUtils.closeStream(reader);
