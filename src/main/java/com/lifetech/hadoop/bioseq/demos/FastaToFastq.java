@@ -2,7 +2,7 @@ package com.lifetech.hadoop.bioseq.demos;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -11,12 +11,13 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
-public class FastaToFastq implements Tool {
+public class FastaToFastq extends Configured implements Tool {
 
 	public static class CopyMapperWithId extends
 			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {
@@ -53,8 +54,6 @@ public class FastaToFastq implements Tool {
 					qual == null ? null : qual));
 		}
 	}
-
-	private Configuration conf;
 
 	@Override
 	public int run(String[] args) throws Exception {
@@ -95,23 +94,8 @@ public class FastaToFastq implements Tool {
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
-	@Override
-	public Configuration getConf() {
-		return conf;
-	}
-
-	@Override
-	public void setConf(Configuration conf) {
-		this.conf = conf;
-	}
-	
-	public static void main(String[] args) {
-		Tool app = new FastaToFastq();
-		app.setConf(new Configuration());
-		try {
-			app.run(args);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public static void main(String[] args) throws Exception {
+		int ret = ToolRunner.run(new FastaToFastq(), args);
+		System.exit(ret);
 	}
 }
