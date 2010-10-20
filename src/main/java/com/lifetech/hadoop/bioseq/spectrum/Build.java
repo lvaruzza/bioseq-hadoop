@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.compress.BZip2Codec;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -21,10 +21,10 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
 public class Build extends Configured implements Tool {
 
 	public static class KmerBuilder extends
-			Mapper<Text, BioSeqWritable, Text, KmerTracking> {
+			Mapper<Text, BioSeqWritable, Text, LongWritable> {
 
 		private Text kmer = new Text();
-		private KmerTracking tracking = new KmerTracking();
+		private LongWritable ONE= new LongWritable(1);
 
 		public void map(Text key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
@@ -36,23 +36,23 @@ public class Build extends Configured implements Tool {
 			byte[] data = seq.getBytes();
 			for (int i = 1; i < size - k; i++) {
 				kmer.set(data, i, k);
-				tracking.set(value.getId(), i);
-				context.write(kmer, tracking);
+				context.write(kmer, ONE);
 			}
 		}
 	}
 
 	public static class MergeReducer extends
-			Reducer<Text, KmerTracking, Text, KmerTracking> {
+			Reducer<Text, LongWritable, Text, LongWritable> {
 
-		public void reduce(Text key, Iterable<KmerTracking> values,
+		public void reduce(Text key, Iterable<LongWritable> values,
 				Context context) throws IOException, InterruptedException {
-			KmerTracking value = new KmerTracking();
 
-			for (KmerTracking kmer : values) {
-				value.addAll(kmer);
+			long sum = 0;
+			
+			for (LongWritable count : values) {
+				sum += count.get(); 
 			}
-			context.write(key, value);
+			context.write(key, new LongWritable(sum));
 		}
 	}
 
@@ -70,13 +70,18 @@ public class Build extends Configured implements Tool {
 
 		job.setMapperClass(KmerBuilder.class);
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(KmerTracking.class);
-		job.setCombinerClass(MergeReducer.class);
-		job.setReducerClass(MergeReducer.class);
+		job.setMapOutputValueClass(LongWritable.class);
 		getConf().setBoolean("mapred.output.compress", true);
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
+
+		job.setCombinerClass(MergeReducer.class);
+		
+		job.setReducerClass(MergeReducer.class);
 		
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(LongWritable.class);
+		
 		SequenceFileOutputFormat.setOutputPath(job, outputPath);
 		SequenceFileOutputFormat.setCompressOutput(job, true);
 		SequenceFileOutputFormat.setOutputCompressorClass(job, LzoCodec.class);

@@ -7,9 +7,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
 
 
 public class DumpKmers {
@@ -23,10 +23,10 @@ public class DumpKmers {
 		try {
 			reader = new SequenceFile.Reader(fs, path, conf);
 			Text key = new Text();
-			KmerTracking value = new KmerTracking();
+			LongWritable value = new LongWritable();
 			
 			while (reader.next(key, value)) {
-				System.out.printf("%s\t%d\n",key,value.get().length);
+				System.out.printf("%s\t%d\n",key,value.get());
 			}
 		} finally {
 			IOUtils.closeStream(reader);
