@@ -7,7 +7,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.compress.BZip2Codec;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -17,6 +16,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import com.hadoop.compression.lzo.LzoCodec;
+import com.hadoop.compression.lzo.LzopCodec;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 
@@ -87,7 +87,7 @@ public class FastaToSequenceFile extends Configured implements Tool {
 
 		SequenceFileOutputFormat.setOutputPath(job, outputPath);
 		SequenceFileOutputFormat.setCompressOutput(job, true);
-		SequenceFileOutputFormat.setOutputCompressorClass(job, BZip2Codec.class);
+		SequenceFileOutputFormat.setOutputCompressorClass(job, LzoCodec.class);
 		
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
