@@ -5,7 +5,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
@@ -55,6 +54,8 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 		WritableComparator.define(WritableBioSeq.class, new Comparator());
 	}*/
 
+	private static BioSeqEncoder encoder = new FourBitsEncoder();
+	
 	public Text id;
 	public Text sequence;
 	public BytesWritable quality;
@@ -89,7 +90,8 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	@Override
 	public void write(DataOutput output) throws IOException {
 		id.write(output);
-		sequence.write(output);
+		//sequence.write(output);
+		encoder.encode(sequence).write(output);
 		quality.write(output);
 	}
 

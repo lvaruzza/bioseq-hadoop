@@ -1,5 +1,8 @@
 package com.lifetech.hadoop.bioseq;
 
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.Text;
+
 /*
  * codes:
  * 'A' => 0000,   0x00
@@ -306,7 +309,7 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		for(int i=start,j=0;i<size;i++,j+=2) {
 			byte fst = (byte) ((data[i] >> 4) & 0x07);
 			byte snd = (byte) (data[i] & 0x07);
-			System.out.printf("D: %d fst = %x %d snd = %x\n",i<<1,fst,(j)+1,snd);
+			//System.out.printf("D: %d fst = %x %d snd = %x\n",i<<1,fst,(j)+1,snd);
 			
 			r[j] = (byte) ((data[i] & 0x80) == 0x80 ? colors[fst] : bases[fst]);
 			if (snd == 7) break;
@@ -337,12 +340,22 @@ public class FourBitsEncoder extends BioSeqEncoder {
 			
 			if (i-start+1 < size) {
 				r[j] += (byte) (encodingVector[data[i+1]]);
-				System.out.printf("E: %d  %c %c r=%x\n",i,data[i],data[i+1],r[j]);
+				//System.out.printf("E: %d  %c %c r=%x\n",i,data[i],data[i+1],r[j]);
 			} else {
 				r[j] += 0x0f;
-				System.out.printf("E: %d %c pad r=%x\n",i,data[i],r[j]);
+				//System.out.printf("E: %d %c pad r=%x\n",i,data[i],r[j]);
 			}
 		}
 		return r;
+	}
+
+	@Override
+	public Text decode(BytesWritable sequence) {
+		return new Text(decode(sequence.getBytes(),sequence.getLength()));
+	}
+
+	@Override
+	public BytesWritable encode(Text sequence) {
+		return new BytesWritable(encode(sequence.getBytes(),sequence.getLength()));
 	}
 }
