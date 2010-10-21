@@ -2,7 +2,7 @@
 FASTA=file:///data/rosalind/Rosalind_20080729_2_Chris5_F3.csfasta
 QUAL=file:///data/rosalind/Rosalind_20080729_2_Chris5_F3_QV.qual
 SEQFILE=/user/varuzza/ecoli/input
-SPECTRUM=hdfs://localhost/user/varuzza/ecoli/spectrum/build
+SPECTRUM=hdfs://localhost/user/varuzza/ecoli/spectrum/build2
 
 # Make seqfile
 echo Converting from csfasta/qual to sequenceFile

@@ -49,10 +49,7 @@ public class FastaToSequenceFile extends Configured implements Tool {
 							val.getType().name(),val.getId().toString()));
 			}
 			
-			context.write(key, new BioSeqWritable(
-					key,
-					seq == null ? null : seq,
-					qual == null ? null : qual));
+			context.write(key, new BioSeqWritable(key,seq,qual));
 		}
 	}
 
