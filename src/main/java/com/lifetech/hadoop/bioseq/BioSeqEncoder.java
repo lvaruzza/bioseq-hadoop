@@ -5,5 +5,7 @@ abstract public class BioSeqEncoder {
 	char[] colors = {'0','1','2','3','.'};
 
 	abstract byte[] encode(byte [] data,int size);	
+	abstract byte[] encode(byte [] data,int start,int size);	
 	abstract byte[] decode(byte [] data,int size);
+	abstract byte[] decode(byte [] data,int start,int size);
 }

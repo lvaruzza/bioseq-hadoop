@@ -288,9 +288,14 @@ public class FourBitsEncoder extends BioSeqEncoder {
 			0x04 , // 0xfe
 			0x04  // 0xff
 		}; 
-	
+
 	@Override
 	public byte[] decode(byte[] data, int size) {
+		return decode(data,0,size);
+	}
+	
+	@Override
+	public byte[] decode(byte[] data, int start,int size) {
 		int newsize = (size << 1);
 		// test for padding
 		if ((data[size-1] & 0x0f) == 0x0f) {
@@ -298,14 +303,14 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		}
 		byte[] r = new byte[newsize];
 		
-		for(int i=0;i<size;i++) {
+		for(int i=start,j=0;i<size;i++,j+=2) {
 			byte fst = (byte) ((data[i] >> 4) & 0x07);
 			byte snd = (byte) (data[i] & 0x07);
-			System.out.printf("D: %d fst = %x %d snd = %x\n",i<<1,fst,(i<<1)+1,snd);
+			System.out.printf("D: %d fst = %x %d snd = %x\n",i<<1,fst,(j)+1,snd);
 			
-			r[i<<1] = (byte) ((data[i] & 0x80) == 0x80 ? colors[fst] : bases[fst]);
+			r[j] = (byte) ((data[i] & 0x80) == 0x80 ? colors[fst] : bases[fst]);
 			if (snd == 7) break;
-			r[(i<<1) + 1] = (byte) ((data[i] & 0x08) == 0x08 ? colors[snd] : bases[snd]);
+			r[j + 1] = (byte) ((data[i] & 0x08) == 0x08 ? colors[snd] : bases[snd]);
 		}
 		return r;
 	}
@@ -316,21 +321,26 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		}
 		System.out.print("\n");
 	}
-	
+
 	@Override
 	public byte[] encode(byte[] data, int size) {
+		return encode(data,0,size);
+	}
+	
+	@Override
+	public byte[] encode(byte[] data, int start,int size) {
 		int newsize = ((size+1) >> 1);
 		byte[] r = new byte[newsize];
 		
-		for(int i=0;i<size;i+=2) {
-			r[i >> 1] = (byte) (encodingVector[data[i]] <<4);
+		for(int i=start,j=0;i<size;i+=2,j++) {
+			r[j] = (byte) (encodingVector[data[i]] <<4);
 			
-			if (i+1 < size) {
-				r[i >> 1] += (byte) (encodingVector[data[i+1]]);
-				System.out.printf("E: %d  %c %c r=%x\n",i,data[i],data[i+1],r[i>>1]);
+			if (i-start+1 < size) {
+				r[j] += (byte) (encodingVector[data[i+1]]);
+				System.out.printf("E: %d  %c %c r=%x\n",i,data[i],data[i+1],r[j]);
 			} else {
-				r[i >> 1] += 0x0f;
-				System.out.printf("E: %d %c pad r=%x\n",i,data[i],r[i>>1]);
+				r[j] += 0x0f;
+				System.out.printf("E: %d %c pad r=%x\n",i,data[i],r[j]);
 			}
 		}
 		return r;
