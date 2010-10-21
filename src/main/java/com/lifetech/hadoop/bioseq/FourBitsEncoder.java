@@ -307,17 +307,27 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		// test for padding
 		if ((data[size-1] & 0x0f) == 0x0f) {
 			newsize--;
+			//System.out.println("D: adjusting padding");
 		}
-		byte[] r = new byte[newsize];
+		//System.out.printf("D: size=%d newsize=%d\n",size,newsize);
 		
-		for(int i=start,j=0;i<start+size;i++,j+=2) {
+		byte[] r = new byte[newsize];
+		int end = start+size-1;
+		for(int i=start,j=0;i<end;i++,j+=2) {
 			byte fst = (byte) ((data[i] >> 4) & 0x07);
 			byte snd = (byte) (data[i] & 0x07);
-			//System.out.printf("D: data[%d]=%x fst = %x snd = %x\n",i,data[i],fst,snd);
-			
+			//System.out.printf("D: data[%d]=%x fst = %x snd = %x\n",i,data[i],fst,snd);			
 			r[j] = (byte) ((data[i] & 0x80) == 0x80 ? colors[fst] : bases[fst]);
-			if (snd == 7) break;
 			r[j + 1] = (byte) ((data[i] & 0x08) == 0x08 ? colors[snd] : bases[snd]);
+		}
+		
+		byte fst = (byte) ((data[end] >> 4) & 0x07);
+		byte snd = (byte) (data[end] & 0x07);
+		if (snd != 7) {
+			r[newsize-2] = (byte) ((data[end] & 0x80) == 0x80 ? colors[fst] : bases[fst]);
+			r[newsize-1] = (byte) ((data[end] & 0x08) == 0x08 ? colors[snd] : bases[snd]);			
+		} else {
+			r[newsize-1] = (byte) ((data[end] & 0x80) == 0x80 ? colors[fst] : bases[fst]);			
 		}
 		return r;
 	}
@@ -335,22 +345,24 @@ public class FourBitsEncoder extends BioSeqEncoder {
 	
 	@Override
 	public byte[] encode(byte[] data, int start,int size) {
-		int newsize = ((size+1) >> 1);
+		int newsize = (size >> 1);
+		if (size%2!=0) {newsize++;};
+		
 		byte[] r = new byte[newsize];
 		int end = ((start+size) >> 1) << 1;
 		
 		for(int i=start,j=0;i<end;i+=2,j++) {
 			r[j] = (byte) (encodingVector[data[i]] <<4);
 			r[j] += (byte) (encodingVector[data[i+1]]);
-			System.out.printf("E: %d  %c %c r=%x\n",i,data[i],data[i+1],r[j]);
+			//System.out.printf("E: %d %d %c %c r=%x\n",j,i,data[i],data[i+1],r[j]);
 		}
 		
 		if (size%2!=0) {
-			System.out.printf("Padding\n");
-			r[newsize-1] += (byte) (encodingVector[data[start+size-1]] << 4);
+			r[newsize-1] = (byte) (encodingVector[data[start+size-1]] << 4);
+			//System.out.printf("E: pad %d r=%x\n",newsize-1,r[newsize-1]);
 			r[newsize-1] += 0x0f;
+			//System.out.printf("E: pad %d r=%x\n",newsize-1,r[newsize-1]);
 		}		
-		System.out.printf("E: %d r=%x\n",newsize-1,r[newsize-1]);
 		
 		return r;
 	}

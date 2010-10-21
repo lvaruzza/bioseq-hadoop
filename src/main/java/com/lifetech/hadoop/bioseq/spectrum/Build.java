@@ -38,7 +38,7 @@ public class Build extends Configured implements Tool {
 			Text seq = value.getSequence();
 			int size = seq.getLength();
 			byte[] data = seq.getBytes();
-			for (int i = 1; i < size - k; i++) {
+			for (int i = 1; i < size - k + 1; i++) {
 				byte [] r=encoder.encode(data, i, k);
 				kmer.set(r,0,r.length);
 				context.write(kmer, ONE);
