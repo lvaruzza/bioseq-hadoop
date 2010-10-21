@@ -83,7 +83,11 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 	@Override
 	public void readFields(DataInput input) throws IOException {
 		id.readFields(input);
-		sequence.readFields(input);
+		
+		BytesWritable encoded = new BytesWritable();		
+		encoded.readFields(input);
+		sequence = encoder.decode(encoded);
+		
 		quality.readFields(input);
 	}
 

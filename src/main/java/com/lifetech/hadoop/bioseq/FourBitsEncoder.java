@@ -299,6 +299,9 @@ public class FourBitsEncoder extends BioSeqEncoder {
 	
 	@Override
 	public byte[] decode(byte[] data, int start,int size) {
+		if (size==0) {
+			return new byte[0];
+		}
 		int newsize = (size << 1);
 		// test for padding
 		if ((data[size-1] & 0x0f) == 0x0f) {
