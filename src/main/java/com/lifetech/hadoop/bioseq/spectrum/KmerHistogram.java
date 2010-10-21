@@ -4,8 +4,10 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.ByteWritable;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -20,11 +22,11 @@ import com.hadoop.compression.lzo.LzoCodec;
 public class KmerHistogram extends Configured implements Tool {
 
 	public static class HistogramMapper extends
-			Mapper<Text, LongWritable, LongWritable, LongWritable> {
+			Mapper<BytesWritable, IntWritable, IntWritable, IntWritable> {
 
-		private LongWritable ONE= new LongWritable(1);
+		private IntWritable ONE= new IntWritable(1);
 
-		public void map(Text key, LongWritable value, Context context)
+		public void map(ByteWritable key, IntWritable value, Context context)
 				throws IOException, InterruptedException {
 
 			context.write(value, ONE);
@@ -32,17 +34,17 @@ public class KmerHistogram extends Configured implements Tool {
 	}
 
 	public static class SumReducer extends
-			Reducer<LongWritable, LongWritable, LongWritable, LongWritable> {
+			Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
 
-		public void reduce(LongWritable key, Iterable<LongWritable> values,
+		public void reduce(IntWritable key, Iterable<IntWritable> values,
 				Context context) throws IOException, InterruptedException {
 
-			long total = 0;
+			int total = 0;
 			
-			for (LongWritable count : values) {
+			for (IntWritable count : values) {
 				total += count.get(); 
 			}
-			context.write(key, new LongWritable(total));
+			context.write(key, new IntWritable(total));
 		}
 	}
 	
@@ -64,8 +66,8 @@ public class KmerHistogram extends Configured implements Tool {
 		SequenceFileInputFormat.setInputPaths(job, inputPath);
 
 		job.setMapperClass(HistogramMapper.class);
-		job.setMapOutputKeyClass(LongWritable.class);
-		job.setMapOutputValueClass(LongWritable.class);
+		job.setMapOutputKeyClass(IntWritable.class);
+		job.setMapOutputValueClass(IntWritable.class);
 		getConf().setBoolean("mapred.output.compress", true);
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
 
@@ -74,8 +76,8 @@ public class KmerHistogram extends Configured implements Tool {
 		job.setReducerClass(SumReducer.class);
 		
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
-		job.setOutputKeyClass(LongWritable.class);
-		job.setOutputValueClass(LongWritable.class);
+		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputValueClass(IntWritable.class);
 		
 		SequenceFileOutputFormat.setOutputPath(job, outputPath);
 		SequenceFileOutputFormat.setCompressOutput(job, true);

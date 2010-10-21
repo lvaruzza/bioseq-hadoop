@@ -7,10 +7,10 @@ abstract public class BioSeqEncoder {
 	char[] bases = {'A','C','G','T','N'};
 	char[] colors = {'0','1','2','3','.'};
 
-	abstract byte[] encode(byte [] data,int size);	
-	abstract byte[] encode(byte [] data,int start,int size);	
-	abstract byte[] decode(byte [] data,int size);
-	abstract byte[] decode(byte [] data,int start,int size);
+	abstract public byte[] encode(byte [] data,int size);	
+	abstract public byte[] encode(byte [] data,int start,int size);	
+	abstract public byte[] decode(byte [] data,int size);
+	abstract public byte[] decode(byte [] data,int start,int size);
 	abstract public BytesWritable encode(Text sequence);
 	abstract public Text decode(BytesWritable sequence);
 }

@@ -302,6 +302,7 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		if (size==0) {
 			return new byte[0];
 		}
+		
 		int newsize = (size << 1);
 		// test for padding
 		if ((data[size-1] & 0x0f) == 0x0f) {
@@ -309,10 +310,10 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		}
 		byte[] r = new byte[newsize];
 		
-		for(int i=start,j=0;i<size;i++,j+=2) {
+		for(int i=start,j=0;i<start+size;i++,j+=2) {
 			byte fst = (byte) ((data[i] >> 4) & 0x07);
 			byte snd = (byte) (data[i] & 0x07);
-			//System.out.printf("D: %d fst = %x %d snd = %x\n",i<<1,fst,(j)+1,snd);
+			//System.out.printf("D: data[%d]=%x fst = %x snd = %x\n",i,data[i],fst,snd);
 			
 			r[j] = (byte) ((data[i] & 0x80) == 0x80 ? colors[fst] : bases[fst]);
 			if (snd == 7) break;
@@ -325,7 +326,6 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		for(int i=0;i<size;i++) {
 			System.out.printf("%x ",x[i]);
 		}
-		System.out.print("\n");
 	}
 
 	@Override
@@ -337,18 +337,21 @@ public class FourBitsEncoder extends BioSeqEncoder {
 	public byte[] encode(byte[] data, int start,int size) {
 		int newsize = ((size+1) >> 1);
 		byte[] r = new byte[newsize];
+		int end = ((start+size) >> 1) << 1;
 		
-		for(int i=start,j=0;i<size;i+=2,j++) {
+		for(int i=start,j=0;i<end;i+=2,j++) {
 			r[j] = (byte) (encodingVector[data[i]] <<4);
-			
-			if (i-start+1 < size) {
-				r[j] += (byte) (encodingVector[data[i+1]]);
-				//System.out.printf("E: %d  %c %c r=%x\n",i,data[i],data[i+1],r[j]);
-			} else {
-				r[j] += 0x0f;
-				//System.out.printf("E: %d %c pad r=%x\n",i,data[i],r[j]);
-			}
+			r[j] += (byte) (encodingVector[data[i+1]]);
+			System.out.printf("E: %d  %c %c r=%x\n",i,data[i],data[i+1],r[j]);
 		}
+		
+		if (size%2!=0) {
+			System.out.printf("Padding\n");
+			r[newsize-1] += (byte) (encodingVector[data[start+size-1]] << 4);
+			r[newsize-1] += 0x0f;
+		}		
+		System.out.printf("E: %d r=%x\n",newsize-1,r[newsize-1]);
+		
 		return r;
 	}
 

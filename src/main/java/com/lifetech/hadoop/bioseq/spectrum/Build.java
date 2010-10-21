@@ -4,7 +4,8 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapreduce.Job;
@@ -16,15 +17,18 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import com.hadoop.compression.lzo.LzoCodec;
+import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
+import com.lifetech.hadoop.bioseq.FourBitsEncoder;
 
 public class Build extends Configured implements Tool {
-
+	private static BioSeqEncoder encoder = new FourBitsEncoder();
+	
 	public static class KmerBuilder extends
-			Mapper<Text, BioSeqWritable, Text, LongWritable> {
+			Mapper<Text, BioSeqWritable, BytesWritable, IntWritable> {
 
-		private Text kmer = new Text();
-		private LongWritable ONE= new LongWritable(1);
+		private BytesWritable kmer = new BytesWritable();
+		private IntWritable ONE = new IntWritable(1);
 
 		public void map(Text key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
@@ -35,24 +39,25 @@ public class Build extends Configured implements Tool {
 			int size = seq.getLength();
 			byte[] data = seq.getBytes();
 			for (int i = 1; i < size - k; i++) {
-				kmer.set(data, i, k);
+				byte [] r=encoder.encode(data, i, k);
+				kmer.set(r,0,r.length);
 				context.write(kmer, ONE);
 			}
 		}
 	}
 
 	public static class MergeReducer extends
-			Reducer<Text, LongWritable, Text, LongWritable> {
+			Reducer<BytesWritable, IntWritable, BytesWritable, IntWritable> {
 
-		public void reduce(Text key, Iterable<LongWritable> values,
+		public void reduce(BytesWritable key, Iterable<IntWritable> values,
 				Context context) throws IOException, InterruptedException {
 
-			long sum = 0;
+			int sum = 0;
 			
-			for (LongWritable count : values) {
+			for (IntWritable count : values) {
 				sum += count.get(); 
 			}
-			context.write(key, new LongWritable(sum));
+			context.write(key, new IntWritable(sum));
 		}
 	}
 
@@ -69,8 +74,8 @@ public class Build extends Configured implements Tool {
 		SequenceFileInputFormat.setInputPaths(job, inputPath);
 
 		job.setMapperClass(KmerBuilder.class);
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(LongWritable.class);
+		job.setMapOutputKeyClass(BytesWritable.class);
+		job.setMapOutputValueClass(IntWritable.class);
 		getConf().setBoolean("mapred.output.compress", true);
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
 		getConf().setInt("spectrum.k", 15);
@@ -80,8 +85,8 @@ public class Build extends Configured implements Tool {
 		job.setReducerClass(MergeReducer.class);
 		
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(LongWritable.class);
+		job.setOutputKeyClass(BytesWritable.class);
+		job.setOutputValueClass(IntWritable.class);
 		
 		SequenceFileOutputFormat.setOutputPath(job, outputPath);
 		SequenceFileOutputFormat.setCompressOutput(job, true);
