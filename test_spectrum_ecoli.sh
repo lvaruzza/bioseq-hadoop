@@ -14,4 +14,4 @@ echo time hadoop jar target/bioseq-0.0.1.jar com.lifetech.hadoop.bioseq.spectrum
 
 
 # Dump spectrum
-echo hadoop jar target/bioseq-0.0.1.jar com.lifetech.hadoop.bioseq.spectrum.DumpKmers $SPECTRUM/part-r-00000
+echo "hadoop jar target/bioseq-0.0.1.jar com.lifetech.hadoop.bioseq.spectrum.DumpKmers $SPECTRUM/part-r-00000 | head -100"
