@@ -22,7 +22,7 @@ import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
 
 public class FastaToSequenceFile extends Configured implements Tool {
-    private static Logger log = Logger.getLogger(FastaRecordReader.class);
+    private static Logger log = Logger.getLogger(FastaToSequenceFile.class);
 
 	public static class CopyMapperWithId extends
 			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {

@@ -2,6 +2,12 @@ package com.lifetech.hadoop.bioseq.demos;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -12,12 +18,14 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
 public class FastaToFastq extends Configured implements Tool {
+    private static Logger log = Logger.getLogger(FastaToFastq.class);
 
 	public static class CopyMapperWithId extends
 			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {
@@ -55,11 +63,79 @@ public class FastaToFastq extends Configured implements Tool {
 		}
 	}
 
+	private String fastaFile;
+	private String qualFile;
+	private String fastqFile;
+	private boolean addFirstQualValue;
+	
+	private void exit(int exitStatus) {
+		if (exitStatus == 0 ){
+			log.info("Program successfully finishied");
+		} else {
+			log.info("Program finishied with ERROR!!!!");			
+		}
+		System.exit(exitStatus);
+	}
+	private void help(Options options) {
+		HelpFormatter formatter = new HelpFormatter();
+		formatter.printHelp( "FastaToFastq", options );
+	}
+	
+	private void parseCmdLine(String[] args) throws ParseException {
+		// create Options object
+		Options options = new Options();
+
+		// add t option
+		options.addOption("bfast", false, "Generete fastq file compatible with bfast's solid2fastq program");
+		options.addOption("f","fasta", true, "Fasta/csfasta input file");
+		options.addOption("q","qual", true, "Qual file");
+		options.addOption("o","output", true, "Output fastq file");
+		
+		CommandLineParser parser = new PosixParser();
+		CommandLine cmd = parser.parse( options, args);
+		
+		if (cmd.hasOption("f")) {
+			fastaFile = cmd.getOptionValue("f");
+			log.info(String.format("Input fasta file '%s'", fastaFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -f / --fasta"));			
+			help(options);
+			exit(-1);
+		}
+
+
+		if (cmd.hasOption("q")) {
+			qualFile = cmd.getOptionValue("q");
+			log.info(String.format("Input Qual file '%s'", qualFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -q / --qual"));			
+			help(options);
+			exit(-1);
+		}
+
+		
+		if (cmd.hasOption("o")) {
+			fastqFile = cmd.getOptionValue("o");
+			log.info(String.format("Output fastQ file '%s'", fastqFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -o / --output"));			
+			help(options);
+			exit(-1);
+		}
+		if (cmd.hasOption("bfast")) {
+			addFirstQualValue = true;
+			log.info("Make fastq compatible with bfast's solid2fastq");
+		} else {
+			addFirstQualValue = false;			
+		}
+	}
+	
 	@Override
 	public int run(String[] args) throws Exception {
-		Path fastaPath = new Path(args[0]);
-		Path qualPath = new Path(args[1]);
-		Path outputPath = new Path(args[2]);
+		parseCmdLine(args);
+		Path fastaPath = new Path(fastaFile);
+		Path qualPath = new Path(qualFile);
+		Path outputPath = new Path(fastqFile);
 		
 		//FileSystem fs = outputPath.getFileSystem(conf);		
 		/*if (fs.exists(outputPath)) {
@@ -68,6 +144,9 @@ public class FastaToFastq extends Configured implements Tool {
 
 		
 		Job job = new Job(getConf(), "FastaToSequenceFile");
+		
+		getConf().setBoolean("fastaformat.addFistQualityValue", addFirstQualValue);
+		
 		
 		if (fastaPath.getName().endsWith(".csfasta")) {
 			System.out.println("Color Space Fasta");
