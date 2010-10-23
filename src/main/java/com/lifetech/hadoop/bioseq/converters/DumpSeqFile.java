@@ -1,4 +1,4 @@
-package com.lifetech.hadoop.bioseq.converter;
+package com.lifetech.hadoop.bioseq.converters;
 
 import java.io.IOException;
 import java.net.URI;

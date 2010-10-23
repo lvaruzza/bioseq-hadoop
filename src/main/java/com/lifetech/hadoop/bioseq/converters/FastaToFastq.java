@@ -1,4 +1,4 @@
-package com.lifetech.hadoop.bioseq.converter;
+package com.lifetech.hadoop.bioseq.converters;
 
 import java.io.IOException;
 
@@ -170,11 +170,11 @@ public class FastaToFastq extends Configured implements Tool {
 		FastaInputFormat.setInputPaths(job, fastaPath,qualPath);
 		//FastaInputFormat.setInputPaths(job,qualPath);
 		FastqOutputFormat.setOutputPath(job, outputPath);
-		return job.waitForCompletion(true) ? 0 : 1;
+		exit(job.waitForCompletion(true) ? 0 : 1);
+		return 0;
 	}
 
 	public static void main(String[] args) throws Exception {
-		int ret = ToolRunner.run(new FastaToFastq(), args);
-		System.exit(ret);
+		ToolRunner.run(new FastaToFastq(), args);
 	}
 }
