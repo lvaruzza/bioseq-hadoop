@@ -12,6 +12,7 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.log4j.Logger;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 
@@ -19,6 +20,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
  * 
  */
 public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable> {
+    private static Logger log = Logger.getLogger(FastaRecordReader.class);
 	
 	public static final String START_TOKEN = "start.token";
 
@@ -32,12 +34,17 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 	private SequenceMaker seqMaker = new SequenceMaker();
 	
 	boolean endOfFile = false;
-
+	boolean addFirstQuality;
+	
 	private LongWritable key = new LongWritable();
 	private BioSeqWritable value = null;
 
-	public FastaRecordReader(boolean colorSpace) {
-		this.colorSpace = colorSpace;
+	public FastaRecordReader() {
+		this.addFirstQuality = false;
+	}
+	
+	public FastaRecordReader(boolean addFirstQuality) {
+		this.addFirstQuality = addFirstQuality;
 	}
 	
 	public long getPos() throws IOException {
@@ -109,11 +116,6 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 
 	private boolean isQualityFasta = false;
 	
-	private boolean colorSpace = false;
-	
-	public void setColorSpace(boolean val) {
-		colorSpace = val;
-	}
 	
 	/*
 	 * TODO: Create a more flexible way to deal with fasta types
@@ -132,7 +134,6 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 			throws IOException, InterruptedException {
 		Configuration jobConf = context.getConfiguration();
 		//startToken = jobConf.get(START_TOKEN).getBytes("utf-8");
-		
 		FileSplit split = (FileSplit) split0;
 		
 		// open the file and seek to the start of the split
@@ -141,7 +142,10 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 		Path file = split.getPath();
 		
 		setFastaTypeByExtension(file);
-		
+		System.out.println(String.format("FastaInputFormat: file '%s'",file.toString()));
+		if (addFirstQuality) {
+			System.out.println("\tFix the first quality value");			
+		}
 		FileSystem fs = file.getFileSystem(jobConf);
 		fsin = fs.open(split.getPath());
 		fsin.seek(start);		
@@ -158,7 +162,7 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 							key.set(fsin.getPos());
 							value = new BioSeqWritable();
 							seqMaker.parseBuffer(buffer.getData(),buffer.getLength(),
-										isQualityFasta,colorSpace,value);							
+										isQualityFasta,addFirstQuality,value);							
 						} catch(InvalidFastaRecord e) {
 							throw new RuntimeException(e);
 						}

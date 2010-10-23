@@ -74,7 +74,7 @@ public class SequenceMaker {
 	}
 
 	public void parseBuffer(byte[] data, int length,
-			boolean isQualityFasta,boolean colorSpace,BioSeqWritable result) throws InvalidFastaRecord {
+			boolean isQualityFasta,boolean addFirstBase,BioSeqWritable result) throws InvalidFastaRecord {
 		//DataOutputBuffer buffer = new DataOutputBuffer();
 		buffer.reset();
 		
@@ -111,7 +111,7 @@ public class SequenceMaker {
 		
 		//out.println(String.format("#2|%d %s|2#",buffer.getLength(),new String(buffer.getData(),0,buffer.getLength())));
 		if (isQualityFasta) {
-			result.set(id,null,new BytesWritable(FastqUtils.convertPhredQualtityBinary(sequence.toString(),colorSpace)));
+			result.set(id,null,new BytesWritable(FastqUtils.convertPhredQualtityBinary(sequence.toString(),addFirstBase)));
 		} else {
 			result.set(id,sequence,null);
 		}

@@ -14,13 +14,15 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
 
 import com.hadoop.compression.lzo.LzoCodec;
-import com.hadoop.compression.lzo.LzopCodec;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
+import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
 
 public class FastaToSequenceFile extends Configured implements Tool {
+    private static Logger log = Logger.getLogger(FastaRecordReader.class);
 
 	public static class CopyMapperWithId extends
 			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {
@@ -59,14 +61,15 @@ public class FastaToSequenceFile extends Configured implements Tool {
 		Path qualPath = new Path(args[1]);
 		Path outputPath = new Path(args[2]);
 		
-		Job job = new Job(getConf(), "FastaToFastq");
 		
 		if (fastaPath.getName().endsWith(".csfasta")) {
-			System.out.println("Color Space Fasta");
-			job.getConfiguration().set("bioseq.colorSpaceInput", "true");
+			log.info("Color Space Fasta");
+			getConf().setBoolean("fastaformat.addFistQualityValue", true);
+			log.info("fastaformat.addFistQualityValue set to true");
 		}
-				
 		
+		Job job = new Job(getConf(), "FastaToFastq");
+						
 		job.setJarByClass(FastaToSequenceFile.class);
 		job.setInputFormatClass(FastaInputFormat.class);
 		FastaInputFormat.setInputPaths(job, fastaPath,qualPath);
@@ -76,7 +79,7 @@ public class FastaToSequenceFile extends Configured implements Tool {
 		job.setMapOutputKeyClass(Text.class);
 		getConf().setBoolean("mapred.output.compress", true);
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
-
+		getConf().setStrings("mapred.output.compression.type", "BLOCK");
 		job.setReducerClass(MergeReducer.class);			
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(BioSeqWritable.class);

@@ -56,9 +56,15 @@ public class KmerToHbase extends Configured implements Tool {
 	}
 	
 	private void createTable(String name) throws IOException {
+		System.out.printf("Creating Table '%s'\n",name);
 		HBaseConfiguration config = new HBaseConfiguration();
 		// Create table
 		HBaseAdmin admin = new HBaseAdmin(config);
+		if (admin.isTableAvailable(name)) {
+			System.out.printf("Table '%s' already exists, droping it\n",name);
+			admin.disableTable(name);
+			admin.deleteTable(name);
+		}
 		HTableDescriptor htd = new HTableDescriptor("test");
 		HColumnDescriptor hcd = new HColumnDescriptor("data");
 		hcd.setCompressionType(Compression.Algorithm.LZO);

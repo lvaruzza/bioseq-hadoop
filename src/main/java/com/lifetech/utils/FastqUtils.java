@@ -25,14 +25,14 @@ public class FastqUtils {
 		return new Text(result);
 	}
 	
-	public static String convertPhredQualtity(String phred,boolean colorSpace) {
-		if (colorSpace)
-			return convertPhredQualtityColorSpace(phred);
+	public static String convertPhredQualtity(String phred,boolean addFirstBase) {
+		if (addFirstBase)
+			return convertPhredQualtityAddFirstBase(phred);
 		else
-			return convertPhredQualtityBaseSpace(phred);			
+			return convertPhredQualtityDefault(phred);			
 	}
 	
-	public static String convertPhredQualtityColorSpace(String phred) {
+	public static String convertPhredQualtityAddFirstBase(String phred) {
 		String [] quals=phred.split(" +");
 		char[] result = new char[quals.length+1];
 		result[0] = sangerQuality(0);
@@ -42,7 +42,7 @@ public class FastqUtils {
 		return new String(result);	
 	}
 	
-	public static String convertPhredQualtityBaseSpace(String phred) {
+	public static String convertPhredQualtityDefault(String phred) {
 		String [] quals=phred.split(" +");
 		char[] result = new char[quals.length];
 		for(int i=0;i<quals.length;i++) {
@@ -52,14 +52,14 @@ public class FastqUtils {
 	}
 	
 	
-	public static byte[] convertPhredQualtityBinary(String phred,boolean colorSpace) {
-		if (colorSpace)
-			return convertPhredQualtityColorSpaceBinary(phred);
+	public static byte[] convertPhredQualtityBinary(String phred,boolean addFirstBase) {
+		if (addFirstBase)
+			return convertPhredQualtityBinaryAddFirstBase(phred);
 		else
-			return convertPhredQualtityBaseSpaceBinary(phred);			
+			return convertPhredQualtityBaseSpaceBinaryDefault(phred);			
 	}
 	
-	public static byte[] convertPhredQualtityColorSpaceBinary(String phred) {
+	public static byte[] convertPhredQualtityBinaryAddFirstBase(String phred) {
 		String [] quals=phred.split(" +");
 		byte[] result = new byte[quals.length+1];
 		result[0] = 0;
@@ -69,7 +69,7 @@ public class FastqUtils {
 		return result;	
 	}
 	
-	public static byte[] convertPhredQualtityBaseSpaceBinary(String phred) {
+	public static byte[] convertPhredQualtityBaseSpaceBinaryDefault(String phred) {
 		String [] quals=phred.split(" +");
 		byte[] result = new byte[quals.length];
 		for(int i=0;i<quals.length;i++) {

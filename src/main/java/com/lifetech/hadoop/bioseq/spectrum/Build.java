@@ -79,7 +79,8 @@ public class Build extends Configured implements Tool {
 		getConf().setBoolean("mapred.output.compress", true);
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
 		getConf().setInt("spectrum.k", 15);
-		
+		getConf().setStrings("mapred.output.compression.type", "BLOCK");
+
 		job.setCombinerClass(MergeReducer.class);
 		
 		job.setReducerClass(MergeReducer.class);
