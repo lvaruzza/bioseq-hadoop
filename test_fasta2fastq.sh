@@ -1,5 +1,7 @@
-OUTPUT=hdfs://localhost/user/varuzza/output_fastq2/
+OUTPUT=hdfs://localhost/user/varuzza/output_fastq/
+FASTA=hdfs://localhost/user/varuzza/data/fastaqual/F3.csfasta
+QUAL=hdfs://localhost/user/varuzza/data/fastaqual/F3.qual
+
 hadoop dfs -rmr $OUTPUT
-hadoop jar target/bioseq-0.0.1.jar com.lifetech.hadoop.bioseq.demos.FastaToFastq hdfs://localhost/user/varuzza/data/fastaqual/F3.csfasta hdfs://localhost/user/varuzza/data/fastaqual/F3.qual $OUTPUT
-rm part*
-hadoop dfs -copyToLocal $OUTPUT/part* .
+./bin/fasta2fastq -f $FASTA -q $QUAL -o $OUTPUT
+hadoop dfs -cat $OUTPUT/part* > F3.fastq

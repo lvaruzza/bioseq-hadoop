@@ -123,10 +123,10 @@ public class FastaToFastq extends Configured implements Tool {
 			exit(-1);
 		}
 		if (cmd.hasOption("bfast")) {
-			addFirstQualValue = true;
+			addFirstQualValue = false;
 			log.info("Make fastq compatible with bfast's solid2fastq");
 		} else {
-			addFirstQualValue = false;			
+			addFirstQualValue = true;			
 		}
 	}
 	
