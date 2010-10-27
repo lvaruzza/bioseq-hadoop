@@ -25,7 +25,7 @@ import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
 public class FastaToFastq extends Configured implements Tool {
-    private static Logger log = Logger.getLogger(TestFastaToFastq.class);
+    private static Logger log = Logger.getLogger(FastaToFastq.class);
 
 	public static class CopyMapperWithId extends
 			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {
@@ -146,7 +146,7 @@ public class FastaToFastq extends Configured implements Tool {
 						
 		log.info(String.format("fastaformat.addFistQualityValue = %b",getConf().getBoolean("fastaformat.addFistQualityValue",false)));
 		
-		job.setJarByClass(TestFastaToFastq.class);
+		job.setJarByClass(FastaToFastq.class);
 		job.setInputFormatClass(FastaInputFormat.class);
 		job.setMapperClass(CopyMapperWithId.class);
 
@@ -162,8 +162,7 @@ public class FastaToFastq extends Configured implements Tool {
 		FastaInputFormat.setInputPaths(job, fastaPath,qualPath);
 		//FastaInputFormat.setInputPaths(job,qualPath);
 		FastqOutputFormat.setOutputPath(job, outputPath);
-		exit(job.waitForCompletion(true) ? 0 : 1);
-		return 0;
+		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
 	public static void main(String[] args) throws Exception {
