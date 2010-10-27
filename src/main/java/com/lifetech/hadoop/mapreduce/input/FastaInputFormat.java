@@ -18,6 +18,7 @@
 package com.lifetech.hadoop.mapreduce.input;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -36,7 +37,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
  */
 public class FastaInputFormat extends FileInputFormat<LongWritable,BioSeqWritable> {
 
-	public static String addFistQualityValueProperty = "fastaformat.addFistQualityValue";
+	public static String addFistQualityValueProperty = "fastainputformat.addFistQualityValue";
 	
 	@Override
 	protected boolean isSplitable(JobContext context, Path file) {
@@ -50,9 +51,6 @@ public class FastaInputFormat extends FileInputFormat<LongWritable,BioSeqWritabl
 			TaskAttemptContext context) throws IOException,
 			InterruptedException {
 
-		boolean addFirstQuality = context.getConfiguration().getBoolean(addFistQualityValueProperty, false);
-		System.out.println("addFirstQuality = " + addFirstQuality);
-		
-		return new FastaRecordReader(addFirstQuality);
+		return new FastaRecordReader();
 	}
 }

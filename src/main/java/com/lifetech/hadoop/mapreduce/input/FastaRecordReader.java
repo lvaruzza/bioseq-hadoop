@@ -1,6 +1,7 @@
 package com.lifetech.hadoop.mapreduce.input;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -19,11 +20,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
 /**
  * 
  */
-public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable> {
-    private static Logger log = Logger.getLogger(FastaRecordReader.class);
-	
-	public static final String START_TOKEN = "start.token";
-
+public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable> {	
 	private byte[] startToken1 = ">".getBytes();
 	private byte[] startToken2 = "\n>".getBytes();
 
@@ -143,6 +140,14 @@ public class FastaRecordReader extends RecordReader<LongWritable, BioSeqWritable
 		
 		setFastaTypeByExtension(file);
 		System.out.println(String.format("FastaInputFormat: file '%s'",file.toString()));
+
+
+		/*for (Entry<String,String> entry: jobConf) {
+			System.out.printf("FastaInputFormat: %s %s\n",entry.getKey(),entry.getValue());
+		}*/
+		
+		this.addFirstQuality = jobConf.getBoolean(FastaInputFormat.addFistQualityValueProperty, false);
+		
 		if (addFirstQuality) {
 			System.out.println("\tFix the first quality value");			
 		}

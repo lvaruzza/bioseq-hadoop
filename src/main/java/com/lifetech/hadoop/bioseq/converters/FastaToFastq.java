@@ -139,15 +139,15 @@ public class FastaToFastq extends Configured implements Tool {
 			fs.delete(outputPath, true);
 		}*/
 
+
+		getConf().setBoolean(FastaInputFormat.addFistQualityValueProperty , addFirstQualValue);
+
 		
 		Job job = new Job(getConf(), "FastaToSequenceFile");
 		
-		getConf().setBoolean(FastaInputFormat.addFistQualityValueProperty , addFirstQualValue);
-						
-		log.info(String.format("fastaformat.addFistQualityValue = %b",getConf().getBoolean("fastaformat.addFistQualityValue",false)));
+		job.setInputFormatClass(FastaInputFormat.class);
 		
 		job.setJarByClass(FastaToFastq.class);
-		job.setInputFormatClass(FastaInputFormat.class);
 		job.setMapperClass(CopyMapperWithId.class);
 
 		job.setReducerClass(MergeReducer.class);
