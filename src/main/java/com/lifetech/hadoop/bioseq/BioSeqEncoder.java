@@ -9,8 +9,22 @@ abstract public class BioSeqEncoder {
 
 	abstract public byte[] encode(byte [] data,int size);	
 	abstract public byte[] encode(byte [] data,int start,int size);	
+	
 	abstract public byte[] decode(byte [] data,int size);
 	abstract public byte[] decode(byte [] data,int start,int size);
-	abstract public BytesWritable encode(Text sequence);
-	abstract public Text decode(BytesWritable sequence);
+	
+
+	public Text decode(BytesWritable sequence) {
+		return new Text(decode(sequence.getBytes(),sequence.getLength()));
+	}
+
+	public BytesWritable encode(Text sequence) {
+		return new BytesWritable(encode(sequence.getBytes(),sequence.getLength()));
+	}
+	
+
+	public byte[] encode(String sequence) {
+		byte[] bytes = sequence.getBytes();
+		return encode(bytes,bytes.length);
+	}	
 }

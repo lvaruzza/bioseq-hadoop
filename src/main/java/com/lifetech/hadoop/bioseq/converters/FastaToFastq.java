@@ -25,7 +25,7 @@ import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
 public class FastaToFastq extends Configured implements Tool {
-    private static Logger log = Logger.getLogger(FastaToFastq.class);
+    private static Logger log = Logger.getLogger(TestFastaToFastq.class);
 
 	public static class CopyMapperWithId extends
 			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {
@@ -145,16 +145,11 @@ public class FastaToFastq extends Configured implements Tool {
 		
 		Job job = new Job(getConf(), "FastaToSequenceFile");
 		
-		getConf().setBoolean("fastaformat.addFistQualityValue", addFirstQualValue);
+		getConf().setBoolean(FastaInputFormat.addFistQualityValueProperty , addFirstQualValue);
+						
+		log.info(String.format("fastaformat.addFistQualityValue = %b",getConf().getBoolean("fastaformat.addFistQualityValue",false)));
 		
-		
-		if (fastaPath.getName().endsWith(".csfasta")) {
-			System.out.println("Color Space Fasta");
-			job.getConfiguration().set("bioseq.colorSpaceInput", "true");
-		}
-				
-		
-		job.setJarByClass(FastaToFastq.class);
+		job.setJarByClass(TestFastaToFastq.class);
 		job.setInputFormatClass(FastaInputFormat.class);
 		job.setMapperClass(CopyMapperWithId.class);
 

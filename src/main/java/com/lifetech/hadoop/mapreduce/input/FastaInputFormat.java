@@ -36,6 +36,8 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
  */
 public class FastaInputFormat extends FileInputFormat<LongWritable,BioSeqWritable> {
 
+	public static String addFistQualityValueProperty = "fastaformat.addFistQualityValue";
+	
 	@Override
 	protected boolean isSplitable(JobContext context, Path file) {
 		CompressionCodec codec = new CompressionCodecFactory(context
@@ -48,7 +50,7 @@ public class FastaInputFormat extends FileInputFormat<LongWritable,BioSeqWritabl
 			TaskAttemptContext context) throws IOException,
 			InterruptedException {
 
-		boolean addFirstQuality = context.getConfiguration().getBoolean("fastaformat.addFistQualityValue", false);
+		boolean addFirstQuality = context.getConfiguration().getBoolean(addFistQualityValueProperty, false);
 		System.out.println("addFirstQuality = " + addFirstQuality);
 		
 		return new FastaRecordReader(addFirstQuality);

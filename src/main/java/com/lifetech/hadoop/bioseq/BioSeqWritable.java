@@ -56,6 +56,10 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 
 	private static BioSeqEncoder encoder = new FourBitsEncoder();
 	
+	public static BioSeqEncoder getEncoder() {
+		return encoder;
+	}
+	
 	public Text id;
 	public Text sequence;
 	public BytesWritable quality;

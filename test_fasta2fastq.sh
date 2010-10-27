@@ -1,6 +1,6 @@
-OUTPUT=hdfs://localhost/user/varuzza/output_fastq/
-FASTA=hdfs://localhost/user/varuzza/data/fastaqual/F3.csfasta
-QUAL=hdfs://localhost/user/varuzza/data/fastaqual/F3.qual
+OUTPUT=/home/varuzza/output_fastq/
+FASTA=/home/varuzza/data/fastaqual/F3.csfasta
+QUAL=/home/varuzza/data/fastaqual/F3.qual
 
 hadoop dfs -rmr $OUTPUT
 ./bin/fasta2fastq -f $FASTA -q $QUAL -o $OUTPUT

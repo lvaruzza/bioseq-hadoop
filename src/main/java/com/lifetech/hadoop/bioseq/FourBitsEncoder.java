@@ -332,7 +332,7 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		return r;
 	}
 
-	public void printBytes(byte[] x,int size) {
+	static public void printBytes(byte[] x,int size) {
 		for(int i=0;i<size;i++) {
 			System.out.printf("%x ",x[i]);
 		}
@@ -349,8 +349,7 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		if (size%2!=0) {newsize++;};
 		
 		byte[] r = new byte[newsize];
-		int end = ((start+size) >> 1) << 1;
-		
+		int end = start + ((size >> 1) << 1);
 		for(int i=start,j=0;i<end;i+=2,j++) {
 			r[j] = (byte) (encodingVector[data[i]] <<4);
 			r[j] += (byte) (encodingVector[data[i+1]]);
@@ -365,15 +364,5 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		}		
 		
 		return r;
-	}
-
-	@Override
-	public Text decode(BytesWritable sequence) {
-		return new Text(decode(sequence.getBytes(),sequence.getLength()));
-	}
-
-	@Override
-	public BytesWritable encode(Text sequence) {
-		return new BytesWritable(encode(sequence.getBytes(),sequence.getLength()));
 	}
 }

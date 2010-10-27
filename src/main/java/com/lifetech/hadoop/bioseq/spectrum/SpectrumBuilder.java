@@ -21,13 +21,13 @@ import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.bioseq.FourBitsEncoder;
 
-public class Build extends Configured implements Tool {
+public class SpectrumBuilder extends Configured implements Tool {
 	private static BioSeqEncoder encoder = new FourBitsEncoder();
 	
-	public static class KmerBuilder extends
+	public static class BuilderMapper extends
 			Mapper<Text, BioSeqWritable, BytesWritable, IntWritable> {
 
-		private BytesWritable kmer = new BytesWritable();
+		//private BytesWritable kmer = new BytesWritable();
 		private IntWritable ONE = new IntWritable(1);
 
 		public void map(Text key, BioSeqWritable value, Context context)
@@ -40,8 +40,14 @@ public class Build extends Configured implements Tool {
 			byte[] data = seq.getBytes();
 			for (int i = 1; i < size - k + 1; i++) {
 				byte [] r=encoder.encode(data, i, k);
-				kmer.set(r,0,r.length);
-				context.write(kmer, ONE);
+
+				/*System.out.print("encoded: ");
+				FourBitsEncoder.printBytes(r, r.length);
+				System.out.println();*/
+				
+				//kmer.set(r,0,r.length);
+				//context.write(kmer, ONE);
+				context.write(new BytesWritable(r), ONE);
 			}
 		}
 	}
@@ -68,12 +74,12 @@ public class Build extends Configured implements Tool {
 
 		Job job = new Job(getConf(), "spectrumBuild");
 
-		job.setJarByClass(Build.class);
+		job.setJarByClass(SpectrumBuilder.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		SequenceFileInputFormat.setInputPaths(job, inputPath);
 
-		job.setMapperClass(KmerBuilder.class);
+		job.setMapperClass(BuilderMapper.class);
 		job.setMapOutputKeyClass(BytesWritable.class);
 		job.setMapOutputValueClass(IntWritable.class);
 		getConf().setBoolean("mapred.output.compress", true);
@@ -97,7 +103,7 @@ public class Build extends Configured implements Tool {
 	}
 
 	public static void main(String[] args) throws Exception {
-		int ret = ToolRunner.run(new Build(), args);
+		int ret = ToolRunner.run(new SpectrumBuilder(), args);
 		System.exit(ret);
 	}
 }
