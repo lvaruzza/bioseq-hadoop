@@ -56,10 +56,7 @@ public class FastaToFastq extends Configured implements Tool {
 							val.getType().name(),val.getId().toString()));
 			}
 			
-			context.write(empty, new BioSeqWritable(
-					key,
-					seq == null ? null : seq,
-					qual == null ? null : qual));
+			context.write(empty, new BioSeqWritable(key,seq,qual));
 		}
 	}
 

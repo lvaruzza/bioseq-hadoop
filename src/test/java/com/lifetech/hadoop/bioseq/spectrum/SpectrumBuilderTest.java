@@ -1,7 +1,5 @@
 package com.lifetech.hadoop.bioseq.spectrum;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -9,14 +7,11 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Mapper.Context;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
@@ -24,7 +19,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
 public class SpectrumBuilderTest {
 
 	@Test
-	public void processesValidRecord() throws IOException, InterruptedException {
+	public void testSpectrumBuilderMapper() throws IOException, InterruptedException {
 		SpectrumBuilder.BuilderMapper mapper = new SpectrumBuilder.BuilderMapper();
 		BioSeqWritable value = new BioSeqWritable();
 		value.set("test", "T0123012", null);
