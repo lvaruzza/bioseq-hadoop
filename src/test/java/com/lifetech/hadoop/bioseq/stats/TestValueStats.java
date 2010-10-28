@@ -45,5 +45,25 @@ public class TestValueStats {
 		assertEquals(6.2,vs.mean(),1e-15);
 		assertEquals(37.2,vs.variance(),1e-15);
 	}
+
+	@Test
+	public void testParallelUpdate() throws IOException {
+		ValueStatsWritable vs1 = new ValueStatsWritable();
+		ValueStatsWritable vs2 = new ValueStatsWritable();
+		
+		vs1.update(1);
+		vs2.update(2);
+		vs1.update(4);
+		vs1.update(8);
+		vs2.update(16);
+		
+		System.out.printf("vs1 %f %f\n",vs1.mean(),vs1.variance());
+		System.out.printf("vs2 %f %f\n",vs2.mean(),vs2.variance());
+		vs2.update(vs1);
+		System.out.printf("vsX %f %f\n",vs2.mean(),vs2.variance());
+		
+		assertEquals(6.2,vs2.mean(),1e-15);
+		assertEquals(37.2,vs2.variance(),1e-15);
+	}
 	
 }

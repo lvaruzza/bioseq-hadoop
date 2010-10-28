@@ -40,6 +40,35 @@ public class ValueStatsWritable implements Writable {
 		this.mean.set(mean);
 	}
 
+	private static int LARGE_N = 1000000;
+	private static int SMALL_DIFF = 10;
+	
+	public void update(ValueStatsWritable b) {
+		int na = this.n.get(); 
+		double m2a = this.m2.get();
+		double meanA = this.mean.get();
+		
+		int nb = b.n.get(); 
+		double m2b = b.m2.get();
+		double meanB = b.mean.get();
+		
+		int nx = na+nb;
+		double diff = meanB - meanA;
+		double meanX;
+		
+		if (na > LARGE_N && Math.abs(na-nb) < SMALL_DIFF) {
+			meanX = (meanA * na + meanB * nb)/(na+nb);			
+		} else {
+			meanX = meanA + (diff * nb) / nx;
+		}
+		
+		double m2x = m2a + m2b + (diff*na*diff*nb)/nx;
+		
+		this.n.set(nx);
+		this.m2.set(m2x);
+		this.mean.set(meanX);
+	}
+	
 	@Override
 	public void write(DataOutput out) throws IOException {
 		n.write(out);
@@ -53,9 +82,9 @@ public class ValueStatsWritable implements Writable {
 		m2.readFields(in);
 		mean.readFields(in);
 	}
-
-	public void update(ValueStatsWritable val) {
-		this.n.set( this.n.get() + val.n.get());
-		throw new RuntimeException("Unimplemented");
+	
+	@Override
+	public String toString() {
+		return String.format("%f +- %f",mean(),Math.sqrt(variance()));
 	}
 }

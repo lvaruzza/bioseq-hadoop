@@ -23,20 +23,32 @@ public class QualityStatistics extends Configured implements Tool {
 	private String outputFile;
 
 	public static class QualityMapper extends
-			Mapper<LongWritable, BioSeqWritable, ByteWritable, ByteWritable> {
+			Mapper<LongWritable, BioSeqWritable, ByteWritable, ValueStatsWritable> {
 
 		ByteWritable pos = new ByteWritable();
-		ByteWritable val = new ByteWritable();
 
 		public void map(LongWritable key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
 
-			byte[] qual = value.getQuality().getBytes();
-
-			for (byte i = 0; i < value.getQuality().getLength(); i++) {
+			int readLen = value.getQuality().getBytes().length;
+			
+			ValueStatsWritable[] values = new ValueStatsWritable[readLen];
+			for(byte i=0;i<values.length;i++) {
+				values[i] = new ValueStatsWritable();
+			}
+			
+			int count = 0;
+			do {
+				value = context.getCurrentValue();
+				byte[] qual = value.getQuality().getBytes();
+				for (byte i = 0; i < qual.length; i++) {
+					values[i].update(qual[i]);
+				}
+			} while(count < 10000 && context.nextKeyValue());
+			
+			for(byte i=0;i<values.length;i++) {
 				pos.set(i);
-				val.set(qual[i]);
-				context.write(pos, val);
+				context.write(pos, values[i]);
 			}
 		}
 	}
@@ -61,8 +73,9 @@ public class QualityStatistics extends Configured implements Tool {
 			extends
 			Reducer<ByteWritable, ValueStatsWritable, ByteWritable, ValueStatsWritable> {
 
-		public void reduce(ByteWritable key, Iterable<ValueStatsWritable> values,
-				Context context) throws IOException, InterruptedException {
+		public void reduce(ByteWritable key,
+				Iterable<ValueStatsWritable> values, Context context)
+				throws IOException, InterruptedException {
 
 			ValueStatsWritable result = new ValueStatsWritable();
 
@@ -88,28 +101,30 @@ public class QualityStatistics extends Configured implements Tool {
 		Job job = new Job(getConf(), "qualityStatistics");
 
 		job.setInputFormatClass(FastaInputFormat.class);
+		FastaInputFormat.setInputPaths(job, qualPath);
 
 		job.setJarByClass(QualityStatistics.class);
-		job.setMapperClass(QualityMapper.class);
-		job.setCombinerClass(StatisticsCombiner.class);
 
+		job.setMapperClass(QualityMapper.class);
+		job.setMapOutputKeyClass(ByteWritable.class);
+		job.setMapOutputValueClass(ValueStatsWritable.class);
+		
+		job.setCombinerClass(StatisticsReducer.class);
 		job.setReducerClass(StatisticsReducer.class);
 
-		job.setMapOutputKeyClass(ByteWritable.class);
-		job.setMapOutputValueClass(ByteWritable.class);
 
 		job.setOutputKeyClass(ByteWritable.class);
 		job.setOutputValueClass(ValueStatsWritable.class);
 
 		job.setOutputFormatClass(TextOutputFormat.class);
-		FastaInputFormat.setInputPaths(job, qualPath);
 		FastqOutputFormat.setOutputPath(job, outputPath);
+
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
 	/**
 	 * @param args
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new QualityStatistics(), args);
