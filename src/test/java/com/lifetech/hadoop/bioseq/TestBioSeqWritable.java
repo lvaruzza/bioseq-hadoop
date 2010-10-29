@@ -8,7 +8,7 @@ import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.junit.Test;
 
-public class BioSeqWritableTest {
+public class TestBioSeqWritable {
 
 	@Test
 	public void testSeqType() {

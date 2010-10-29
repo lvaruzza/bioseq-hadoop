@@ -16,7 +16,7 @@ import org.junit.Test;
 import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 
-public class SpectrumBuilderTest {
+public class TestSpectrumBuilder {
 
 	@Test
 	public void testSpectrumBuilderMapper() throws IOException, InterruptedException {

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
-public class FourBitsEncoderTest {
+public class TestFourBitsEncoder {
 
 	private FourBitsEncoder encoder = new FourBitsEncoder(); 
 
@@ -13,7 +13,7 @@ public class FourBitsEncoderTest {
 	public void testEvenSize() {
 		byte[] a = "T012".getBytes();
 		byte[] b = encoder.encode(a, 4);
-		encoder.printBytes(b,2);
+		FourBitsEncoder.printBytes(b,2);
 		byte[] c = encoder.decode(b,2);
 		System.out.println(new String(c));
 		assertEquals(new String(a),new String(c));
@@ -23,7 +23,7 @@ public class FourBitsEncoderTest {
 	public void testOddSize() {
 		byte[] a = "T0123".getBytes();
 		byte[] b = encoder.encode(a, 5);
-		encoder.printBytes(b,3);
+		FourBitsEncoder.printBytes(b,3);
 		byte[] c = encoder.decode(b,3);
 		System.out.println(new String(a) + " [" + new String(c) + "|");
 		assertEquals(new String(a),new String(c));
@@ -34,7 +34,7 @@ public class FourBitsEncoderTest {
 		byte[] orig = "T01231111".getBytes();
 		byte[] a = Arrays.copyOfRange(orig, 5, 9);
 		byte[] b = encoder.encode(orig, 5,4);
-		encoder.printBytes(b,2);
+		FourBitsEncoder.printBytes(b,2);
 		System.out.println("");
 		
 		byte[] c = encoder.decode(b,b.length);
@@ -47,7 +47,7 @@ public class FourBitsEncoderTest {
 		byte[] orig = "T01231111".getBytes();
 		byte[] a = Arrays.copyOfRange(orig, 4, 9);
 		byte[] b = encoder.encode(orig, 4,5);
-		encoder.printBytes(b,3);
+		FourBitsEncoder.printBytes(b,3);
 		System.out.println("");
 		
 		byte[] c = encoder.decode(b,b.length);
@@ -58,7 +58,7 @@ public class FourBitsEncoderTest {
 	@Test
 	public void testSubArrayDecode() {
 		byte[] orig = {0,0,(byte)0x99,(byte)0x99,0};
-		encoder.printBytes(orig,orig.length);
+		FourBitsEncoder.printBytes(orig,orig.length);
 		System.out.println();
 		
 		byte[] c = encoder.decode(orig,2,2);
@@ -79,7 +79,7 @@ public class FourBitsEncoderTest {
 			for(int j=0;j<i;j++) { System.out.print(' '); };
 			byte[] decoded = encoder.decode(kmer, kmer.length);
 			System.out.printf("%s\t\t",new String(decoded));
-			encoder.printBytes(kmer, kmer.length);
+			FourBitsEncoder.printBytes(kmer, kmer.length);
 			System.out.println();
 			assertEquals(s.substring(i, i+k),new String(decoded));
 		}
