@@ -33,7 +33,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		public void map(Text key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
 
-			int k = context.getConfiguration().getInt("spectrum.k", 15);
+			int k = context.getConfiguration().getInt("spectrum.k", 17);
 
 			Text seq = value.getSequence();
 			int size = seq.getLength();
