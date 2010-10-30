@@ -68,18 +68,12 @@ public class KmerToHbase extends Configured implements Tool {
 		HTableDescriptor htd = new HTableDescriptor("test");
 		HColumnDescriptor hcd = new HColumnDescriptor("data");
 		hcd.setCompressionType(Compression.Algorithm.LZO);
+		hcd.setBloomfilter(true);
 		htd.addFamily(hcd);
 		admin.createTable(htd);		
 	}
-	
-	@Override
-	public int run(String[] args) throws Exception {
-		Path inputPath = new Path(args[0]);
-		// Path outputPath = new Path(args[1]);
-		String tableName="kmers";
-		
-		createTable(tableName);
-		
+
+	private int runMR(String tableName,Path inputPath) throws IOException, InterruptedException, ClassNotFoundException {		
 		Job job = new Job(getConf(), "KmerHbaseImport");
 
 		//getConf().setBoolean("keep.failed.task.files", true);
@@ -97,7 +91,17 @@ public class KmerToHbase extends Configured implements Tool {
 		job.setOutputFormatClass(TableOutputFormat.class);
 		job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, tableName);
 		
-		return job.waitForCompletion(true) ? 0 : 1;
+		return job.waitForCompletion(true) ? 0 : 1;		
+	}
+	@Override
+	public int run(String[] args) throws Exception {
+		Path inputPath = new Path(args[0]);
+		// Path outputPath = new Path(args[1]);
+		String tableName="kmers";
+		
+		createTable(tableName);
+		return 0;
+		//return runMR(tableName,inputPath);
 	}
 
 	public static void main(String[] args) throws Exception {
