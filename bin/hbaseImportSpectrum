@@ -11,4 +11,4 @@ if test ! -f $HADOOP; then
     fi
 fi
 
-$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.stats.QualityStatistics $*
+$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.spectrum.KmerToHbase $*

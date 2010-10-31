@@ -35,7 +35,7 @@ public class KmerToHbase extends Configured implements Tool {
 				throws IOException, InterruptedException {
 			
 			int filter = context.getConfiguration().getInt("spectrum.hbase.filter", 3);
-			if (value.get() < filter) {
+			if (value.get() > filter) {
 				context.write(key, value);
 			}
 		}
@@ -55,17 +55,17 @@ public class KmerToHbase extends Configured implements Tool {
 		}
 	}
 	
-	private void createTable(String name) throws IOException {
+	private void recreateTable(String name) throws IOException {
 		System.out.printf("Creating Table '%s'\n",name);
 		HBaseConfiguration config = new HBaseConfiguration();
 		// Create table
 		HBaseAdmin admin = new HBaseAdmin(config);
-		if (admin.isTableAvailable(name)) {
+		if (admin.tableExists(name)) {
 			System.out.printf("Table '%s' already exists, droping it\n",name);
 			admin.disableTable(name);
 			admin.deleteTable(name);
 		}
-		HTableDescriptor htd = new HTableDescriptor("test");
+		HTableDescriptor htd = new HTableDescriptor(name);
 		HColumnDescriptor hcd = new HColumnDescriptor("data");
 		hcd.setCompressionType(Compression.Algorithm.LZO);
 		hcd.setBloomfilter(true);
@@ -99,9 +99,8 @@ public class KmerToHbase extends Configured implements Tool {
 		// Path outputPath = new Path(args[1]);
 		String tableName="kmers";
 		
-		createTable(tableName);
-		return 0;
-		//return runMR(tableName,inputPath);
+		recreateTable(tableName);
+		return runMR(tableName,inputPath);
 	}
 
 	public static void main(String[] args) throws Exception {
