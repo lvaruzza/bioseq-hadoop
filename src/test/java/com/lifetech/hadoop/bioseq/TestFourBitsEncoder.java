@@ -1,9 +1,11 @@
 package com.lifetech.hadoop.bioseq;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 public class TestFourBitsEncoder {
 
@@ -84,4 +86,25 @@ public class TestFourBitsEncoder {
 			assertEquals(s.substring(i, i+k),new String(decoded));
 		}
 	}
+	
+	@Test
+	public void testReverseOdd() {
+		String s = "T012301230123";
+		byte[] f = encoder.encode(s.getBytes());
+		byte[] r = encoder.reverse(f);
+		byte[] rr = encoder.reverse(r);
+
+		assertTrue(Arrays.equals(f, rr));
+	}
+	
+	@Test
+	public void testReverseEven() {
+		String s = "T01230123012";
+		byte[] f = encoder.encode(s.getBytes());
+		byte[] r = encoder.reverse(f);
+		byte[] rr = encoder.reverse(r);
+
+		assertTrue(Arrays.equals(f, rr));
+	}
+	
 }

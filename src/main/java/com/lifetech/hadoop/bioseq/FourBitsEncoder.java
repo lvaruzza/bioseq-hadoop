@@ -293,11 +293,6 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		}; 
 
 	@Override
-	public byte[] decode(byte[] data, int size) {
-		return decode(data,0,size);
-	}
-	
-	@Override
 	public byte[] decode(byte[] data, int start,int size) {
 		if (size==0) {
 			return new byte[0];
@@ -334,13 +329,8 @@ public class FourBitsEncoder extends BioSeqEncoder {
 
 	static public void printBytes(byte[] x,int size) {
 		for(int i=0;i<size;i++) {
-			System.out.printf("%x ",x[i]);
+			System.out.printf("\\x%x",x[i]);
 		}
-	}
-
-	@Override
-	public byte[] encode(byte[] data, int size) {
-		return encode(data,0,size);
 	}
 	
 	@Override
@@ -365,4 +355,47 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		
 		return r;
 	}
+
+	@Override
+	public byte[] reverse(byte[] f, int start, int length) {
+		if ((f[start+length-1] & 0x0f) == 0x0f) {
+			return reverseOdd(f,start,length);
+		} else {
+			return reverseEven(f,start,length);			
+		}
+	}
+	
+	private byte[] reverseEven(byte[] f, int start, int length) {
+		byte[] r = new byte[length];
+		
+		for (int i=start,j=length-1;i<start+length;i++,j--) {
+			byte u = (byte) ((f[i] & 0xf0) >> 4);
+			byte l = (byte) ((f[i] & 0x0f) << 4);
+			r[j] = (byte) (u | l);
+			//System.out.printf("f = %x u = %x  l=%x r=%x\n",f[i],u,l,r[j]);
+		}
+		return r;
+	}
+	
+	/*
+	 * F = | U1 L1 | U2 L2 | U3 F |
+	 * R = | U3 L2 | U2 L1 | U1 F |
+	 */
+	private byte[] reverseOdd(byte[] f, int start, int length) {
+		int end = start+length;
+		
+		byte[] r = new byte[length];
+
+		r[0] = (byte) (f[end-1] & 0xf0);
+		
+		for (int i=end-2,j=1;i>=start;i--,j++) {
+			byte u = (byte) ((f[i] & 0xf0) );
+			byte l = (byte) ((f[i] & 0x0f) );
+			r[j-1] |= l;
+			r[j] = u;
+			//System.out.printf("f = %x u = %x  l=%x r=%x\n",f[i],u,l,r[j-1]);
+		}
+		r[length-1] |= 0x0f;
+		return r;
+	}	
 }

@@ -34,7 +34,7 @@ public class KmerToHbase extends Configured implements Tool {
 		public void map(BytesWritable key, IntWritable value, Context context)
 				throws IOException, InterruptedException {
 			
-			int filter = context.getConfiguration().getInt("spectrum.hbase.filter", 3);
+			int filter = context.getConfiguration().getInt("spectrum.hbase.filter", 1);
 			if (value.get() > filter) {
 				context.write(key, value);
 			}
@@ -46,7 +46,7 @@ public class KmerToHbase extends Configured implements Tool {
 		public void reduce(BytesWritable key, Iterable<IntWritable> values,
 				Context context) throws IOException, InterruptedException {
 
-			long count = values.iterator().next().get();
+			int count = values.iterator().next().get();
 			byte[] row = Arrays.copyOf(key.getBytes(), key.getLength());
 			Put put = new Put(row);
 			put.add(Bytes.toBytes("data"), Bytes.toBytes("count"), Bytes.toBytes(count));

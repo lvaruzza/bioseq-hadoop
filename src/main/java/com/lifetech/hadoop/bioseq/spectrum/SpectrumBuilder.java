@@ -2,6 +2,12 @@ package com.lifetech.hadoop.bioseq.spectrum;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -15,13 +21,16 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
 
 import com.hadoop.compression.lzo.LzoCodec;
 import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.bioseq.FourBitsEncoder;
+import com.lifetech.hadoop.bioseq.converters.FastaToFastq;
 
 public class SpectrumBuilder extends Configured implements Tool {
+    private static Logger log = Logger.getLogger(FastaToFastq.class);	
 	private static BioSeqEncoder encoder = new FourBitsEncoder();
 	
 	public static class BuilderMapper extends
@@ -48,6 +57,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 				//kmer.set(r,0,r.length);
 				//context.write(kmer, ONE);
 				context.write(new BytesWritable(r), ONE);
+				context.write(new BytesWritable(encoder.reverse(r)), ONE);
 			}
 		}
 	}
@@ -67,10 +77,60 @@ public class SpectrumBuilder extends Configured implements Tool {
 		}
 	}
 
+	private void exit(int exitStatus) {
+		if (exitStatus == 0 ){
+			log.info("Program successfully finishied");
+		} else {
+			log.info("Program finishied with ERROR!!!!");			
+		}
+		System.exit(exitStatus);
+	}
+
+	private void help(Options options) {
+		HelpFormatter formatter = new HelpFormatter();
+		formatter.printHelp( "FastaToFastq", options );
+	}
+	
+	private String inputFile;	
+	private String outputFile;
+
+	private void parseCmdLine(String[] args) throws ParseException {
+		// create Options object
+		Options options = new Options();
+
+		// add t option
+		options.addOption("i","input", true, "Fasta/csfasta input file");
+		options.addOption("o","output", true, "Output fastq file");
+		
+		CommandLineParser parser = new PosixParser();
+		CommandLine cmd = parser.parse( options, args);
+		
+		if (cmd.hasOption("i")) {
+			inputFile = cmd.getOptionValue("i");
+			log.info(String.format("Input file '%s'", inputFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -i / --input"));			
+			help(options);
+			exit(-1);
+		}
+		
+		
+		if (cmd.hasOption("o")) {
+			outputFile = cmd.getOptionValue("o");
+			log.info(String.format("Output path '%s'", outputFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -o / --output"));			
+			help(options);
+			exit(-1);
+		}		
+	}
+	
 	@Override
 	public int run(String[] args) throws Exception {
-		Path inputPath = new Path(args[0]);
-		Path outputPath = new Path(args[1]);
+		parseCmdLine(args);
+		
+		Path inputPath = new Path(inputFile);
+		Path outputPath = new Path(outputFile);
 
 		Job job = new Job(getConf(), "spectrumBuild");
 
@@ -84,7 +144,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		job.setMapOutputValueClass(IntWritable.class);
 		getConf().setBoolean("mapred.output.compress", true);
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
-		getConf().setInt("spectrum.k", 15);
+		getConf().setInt("spectrum.k", 17);
 		getConf().setStrings("mapred.output.compression.type", "BLOCK");
 
 		job.setCombinerClass(MergeReducer.class);
