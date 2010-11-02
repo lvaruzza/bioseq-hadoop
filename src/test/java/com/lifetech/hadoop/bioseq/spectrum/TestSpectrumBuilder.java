@@ -3,6 +3,7 @@ package com.lifetech.hadoop.bioseq.spectrum;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -38,5 +39,10 @@ public class TestSpectrumBuilder {
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("01230")),new IntWritable(1));
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("12301")),new IntWritable(1));
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("23012")),new IntWritable(1));
+		
+		verify(context,times(1)).write(new BytesWritable(encoder.encode("03210")),new IntWritable(1));
+		verify(context,times(1)).write(new BytesWritable(encoder.encode("10321")),new IntWritable(1));
+		verify(context,times(1)).write(new BytesWritable(encoder.encode("21032")),new IntWritable(1));
+		//verifyNoMoreInteractions(context);
 	}
 }

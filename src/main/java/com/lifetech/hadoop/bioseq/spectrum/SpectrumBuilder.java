@@ -9,6 +9,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
@@ -50,8 +51,10 @@ public class SpectrumBuilder extends Configured implements Tool {
 			for (int i = 1; i < size - k + 1; i++) {
 				byte [] r=encoder.encode(data, i, k);
 
-				/*System.out.print("encoded: ");
-				FourBitsEncoder.printBytes(r, r.length);
+				/*System.out.println("encoded: ");
+				FourBitsEncoder.printBytes(r);
+				System.out.println();
+				FourBitsEncoder.printBytes(encoder.reverse(r));
 				System.out.println();*/
 				
 				//kmer.set(r,0,r.length);
@@ -93,7 +96,8 @@ public class SpectrumBuilder extends Configured implements Tool {
 	
 	private String inputFile;	
 	private String outputFile;
-
+	private boolean removeOutput = false;
+	
 	private void parseCmdLine(String[] args) throws ParseException {
 		// create Options object
 		Options options = new Options();
@@ -101,6 +105,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		// add t option
 		options.addOption("i","input", true, "Fasta/csfasta input file");
 		options.addOption("o","output", true, "Output fastq file");
+		options.addOption("removeOutput", false, "Remove old output");
 		
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd = parser.parse( options, args);
@@ -123,6 +128,12 @@ public class SpectrumBuilder extends Configured implements Tool {
 			help(options);
 			exit(-1);
 		}		
+		
+		if (cmd.hasOption("removeOutput")) {
+			removeOutput=true;
+		} else {
+			removeOutput=false;
+		}
 	}
 	
 	@Override
@@ -132,6 +143,12 @@ public class SpectrumBuilder extends Configured implements Tool {
 		Path inputPath = new Path(inputFile);
 		Path outputPath = new Path(outputFile);
 
+		if (removeOutput) {
+			FileSystem fs = outputPath.getFileSystem(getConf());
+			log.info(String.format("Removing '%s'", outputFile));
+			fs.delete(outputPath, true);
+		}
+		
 		Job job = new Job(getConf(), "spectrumBuild");
 
 		job.setJarByClass(SpectrumBuilder.class);
@@ -147,7 +164,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		getConf().setInt("spectrum.k", 17);
 		getConf().setStrings("mapred.output.compression.type", "BLOCK");
 
-		job.setCombinerClass(MergeReducer.class);
+		//job.setCombinerClass(MergeReducer.class);
 		
 		job.setReducerClass(MergeReducer.class);
 		

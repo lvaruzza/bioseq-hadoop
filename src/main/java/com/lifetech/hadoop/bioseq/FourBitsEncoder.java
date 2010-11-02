@@ -327,6 +327,10 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		return r;
 	}
 
+	static public void printBytes(byte[] x) {
+		printBytes(x,x.length);
+	}
+	
 	static public void printBytes(byte[] x,int size) {
 		for(int i=0;i<size;i++) {
 			System.out.printf("\\x%x",x[i]);

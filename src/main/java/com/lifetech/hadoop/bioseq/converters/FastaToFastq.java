@@ -73,6 +73,7 @@ public class FastaToFastq extends Configured implements Tool {
 		}
 		System.exit(exitStatus);
 	}
+
 	private void help(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp( "FastaToFastq", options );
