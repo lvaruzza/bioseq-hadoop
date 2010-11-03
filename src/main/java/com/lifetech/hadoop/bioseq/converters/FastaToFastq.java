@@ -4,11 +4,10 @@ import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -24,7 +23,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
-public class FastaToFastq extends Configured implements Tool {
+public class FastaToFastq extends ApplicationCmdLine implements Tool {
     private static Logger log = Logger.getLogger(FastaToFastq.class);
 
 	public static class CopyMapperWithId extends
@@ -65,21 +64,8 @@ public class FastaToFastq extends Configured implements Tool {
 	private String fastqFile;
 	private boolean addFirstQualValue;
 	
-	private void exit(int exitStatus) {
-		if (exitStatus == 0 ){
-			log.info("Program successfully finishied");
-		} else {
-			log.info("Program finishied with ERROR!!!!");			
-		}
-		System.exit(exitStatus);
-	}
-
-	private void help(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp( "FastaToFastq", options );
-	}
-	
-	private void parseCmdLine(String[] args) throws ParseException {
+	@Override
+	protected Options buildOptions() {
 		// create Options object
 		Options options = new Options();
 
@@ -88,10 +74,13 @@ public class FastaToFastq extends Configured implements Tool {
 		options.addOption("f","fasta", true, "Fasta/csfasta input file");
 		options.addOption("q","qual", true, "Qual file");
 		options.addOption("o","output", true, "Output fastq file");
+		options.addOption("removeOutput", false, "Remove old output");
 		
-		CommandLineParser parser = new PosixParser();
-		CommandLine cmd = parser.parse( options, args);
-		
+		return options;
+	}
+	
+	@Override
+	protected void checkCmdLine(Options options,CommandLine cmd)  {
 		if (cmd.hasOption("f")) {
 			fastaFile = cmd.getOptionValue("f");
 			log.info(String.format("Input fasta file '%s'", fastaFile));
@@ -126,6 +115,12 @@ public class FastaToFastq extends Configured implements Tool {
 		} else {
 			addFirstQualValue = true;			
 		}
+		
+		if (cmd.hasOption("removeOutput")) {
+			removeOldOutput=true;
+		} else {
+			removeOldOutput=false;
+		}		
 	}
 	
 	@Override
@@ -135,10 +130,13 @@ public class FastaToFastq extends Configured implements Tool {
 		Path qualPath = new Path(qualFile);
 		Path outputPath = new Path(fastqFile);
 		
-		//FileSystem fs = outputPath.getFileSystem(conf);		
-		/*if (fs.exists(outputPath)) {
-			fs.delete(outputPath, true);
-		}*/
+		if (removeOldOutput) {
+			FileSystem fs = outputPath.getFileSystem(getConf());		
+			if (fs.exists(outputPath)) {
+				log.info(String.format("Removing '%s'", outputPath));
+				fs.delete(outputPath, true);
+			}
+		}
 
 
 		getConf().setBoolean(FastaInputFormat.addFistQualityValueProperty , addFirstQualValue);

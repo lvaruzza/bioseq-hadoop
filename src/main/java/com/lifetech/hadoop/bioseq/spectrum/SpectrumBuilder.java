@@ -59,6 +59,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 				
 				//kmer.set(r,0,r.length);
 				//context.write(kmer, ONE);
+				
 				context.write(new BytesWritable(r), ONE);
 				context.write(new BytesWritable(encoder.reverse(r)), ONE);
 			}
@@ -96,7 +97,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 	
 	private String inputFile;	
 	private String outputFile;
-	private boolean removeOutput = false;
+	private boolean removeOldOutput = false;
 	
 	private void parseCmdLine(String[] args) throws ParseException {
 		// create Options object
@@ -130,9 +131,9 @@ public class SpectrumBuilder extends Configured implements Tool {
 		}		
 		
 		if (cmd.hasOption("removeOutput")) {
-			removeOutput=true;
+			removeOldOutput=true;
 		} else {
-			removeOutput=false;
+			removeOldOutput=false;
 		}
 	}
 	
@@ -143,7 +144,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		Path inputPath = new Path(inputFile);
 		Path outputPath = new Path(outputFile);
 
-		if (removeOutput) {
+		if (removeOldOutput) {
 			FileSystem fs = outputPath.getFileSystem(getConf());
 			log.info(String.format("Removing '%s'", outputFile));
 			fs.delete(outputPath, true);
@@ -164,7 +165,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		getConf().setInt("spectrum.k", 17);
 		getConf().setStrings("mapred.output.compression.type", "BLOCK");
 
-		//job.setCombinerClass(MergeReducer.class);
+		job.setCombinerClass(MergeReducer.class);
 		
 		job.setReducerClass(MergeReducer.class);
 		

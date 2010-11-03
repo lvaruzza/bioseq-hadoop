@@ -2,7 +2,13 @@ package com.lifetech.hadoop.bioseq.converters;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -21,7 +27,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
 
-public class FastaToSequenceFile extends Configured implements Tool {
+public class FastaToSequenceFile extends ApplicationCmdLine implements Tool {
     private static Logger log = Logger.getLogger(FastaToSequenceFile.class);
 
 	public static class CopyMapperWithId extends
@@ -55,12 +61,76 @@ public class FastaToSequenceFile extends Configured implements Tool {
 		}
 	}
 
+	private String fastaFile;
+	private String qualFile;
+	private String fastqFile;
+	
+	protected Options buildOptions() {
+		// create Options object
+		Options options = new Options();
+
+		// add t option
+		options.addOption("f","fasta", true, "Fasta/csfasta input file");
+		options.addOption("q","qual", true, "Qual file");
+		options.addOption("o","output", true, "Output Hadoop Sequence file");
+		options.addOption("removeOutput", false, "Remove old output");
+		
+		return options;
+	}
+
+	protected void checkCmdLine(Options options,CommandLine cmd) {		
+		if (cmd.hasOption("f")) {
+			fastaFile = cmd.getOptionValue("f");
+			log.info(String.format("Input fasta file '%s'", fastaFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -f / --fasta"));			
+			help(options);
+			exit(-1);
+		}
+
+
+		if (cmd.hasOption("q")) {
+			qualFile = cmd.getOptionValue("q");
+			log.info(String.format("Input Qual file '%s'", qualFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -q / --qual"));			
+			help(options);
+			exit(-1);
+		}
+
+		
+		if (cmd.hasOption("o")) {
+			fastqFile = cmd.getOptionValue("o");
+			log.info(String.format("Output fastQ file '%s'", fastqFile));
+		} else {
+			log.error(String.format("Missing mandatory argument -o / --output"));			
+			help(options);
+			exit(-1);
+		}
+		
+		
+		if (cmd.hasOption("removeOutput")) {
+			removeOldOutput=true;
+		} else {
+			removeOldOutput=false;
+		}					
+	}
+
 	@Override
 	public int run(String[] args) throws Exception {
-		Path fastaPath = new Path(args[0]);
-		Path qualPath = new Path(args[1]);
-		Path outputPath = new Path(args[2]);
+		parseCmdLine(args);
+		Path fastaPath = new Path(fastaFile);
+		Path qualPath = new Path(qualFile);
+		Path outputPath = new Path(fastqFile);
 		
+		
+		if (removeOldOutput) {
+			FileSystem fs = outputPath.getFileSystem(getConf());		
+			if (fs.exists(outputPath)) {
+				log.info(String.format("Removing '%s'", outputPath));
+				fs.delete(outputPath, true);
+			}
+		}
 		
 		if (fastaPath.getName().endsWith(".csfasta")) {
 			log.info("Color Space Fasta");
