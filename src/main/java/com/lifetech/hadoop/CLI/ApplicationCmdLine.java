@@ -1,4 +1,4 @@
-package com.lifetech.hadoop.bioseq.converters;
+package com.lifetech.hadoop.CLI;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
