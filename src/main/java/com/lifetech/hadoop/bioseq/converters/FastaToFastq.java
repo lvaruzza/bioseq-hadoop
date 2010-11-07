@@ -19,12 +19,12 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
-import com.lifetech.hadoop.CLI.ApplicationCmdLine;
+import com.lifetech.hadoop.CLI.CLIApplication;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
-public class FastaToFastq extends ApplicationCmdLine implements Tool {
+public class FastaToFastq extends CLIApplication implements Tool {
     private static Logger log = Logger.getLogger(FastaToFastq.class);
 
 	public static class CopyMapperWithId extends

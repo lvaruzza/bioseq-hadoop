@@ -23,12 +23,12 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
 import com.hadoop.compression.lzo.LzoCodec;
-import com.lifetech.hadoop.CLI.ApplicationCmdLine;
+import com.lifetech.hadoop.CLI.CLIApplication;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.input.FastaRecordReader;
 
-public class FastaToSequenceFile extends ApplicationCmdLine implements Tool {
+public class FastaToSequenceFile extends CLIApplication implements Tool {
     private static Logger log = Logger.getLogger(FastaToSequenceFile.class);
 
 	public static class CopyMapperWithId extends

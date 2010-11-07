@@ -9,8 +9,8 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.log4j.Logger;
 
-abstract public class ApplicationCmdLine extends Configured {
-    private static Logger log = Logger.getLogger(ApplicationCmdLine.class);
+abstract public class CLIApplication extends Configured {
+    private static Logger log = Logger.getLogger(CLIApplication.class);
 
     protected boolean removeOldOutput;
     
