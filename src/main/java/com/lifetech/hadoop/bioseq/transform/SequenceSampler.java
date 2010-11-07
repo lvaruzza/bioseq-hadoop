@@ -99,7 +99,8 @@ public class SequenceSampler extends CLIApplication {
 		Job job = new Job(getConf(), "FastaToSequenceFile");
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
-
+		SequenceFileInputFormat.setInputPaths(job, inputPath);
+		
 		job.setJarByClass(SequenceSampler.class);
 		job.setMapperClass(SamplerMapper.class);
 
