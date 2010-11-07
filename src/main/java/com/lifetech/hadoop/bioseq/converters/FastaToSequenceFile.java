@@ -101,8 +101,7 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 	}
 
 	@Override
-	public int run(String[] args) throws Exception {
-		parseCmdLine(args);
+	protected Job createJob() throws Exception {
 		Path fastaPath = new Path(fastaFileName);
 		Path qualPath = new Path(qualFileName);
 		Path outputPath = new Path(outputFileName);
@@ -143,7 +142,7 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 		SequenceFileOutputFormat.setCompressOutput(job, true);
 		SequenceFileOutputFormat.setOutputCompressorClass(job, LzoCodec.class);
 		
-		return job.waitForCompletion(true) ? 0 : 1;
+		return job;
 	}
 
 	

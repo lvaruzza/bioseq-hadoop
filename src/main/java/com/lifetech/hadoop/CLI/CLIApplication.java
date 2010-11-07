@@ -7,13 +7,16 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.util.Tool;
 import org.apache.log4j.Logger;
 
-abstract public class CLIApplication extends Configured {
+abstract public class CLIApplication extends Configured implements Tool {
     private static Logger log = Logger.getLogger(CLIApplication.class);
 
     protected boolean removeOldOutput;
     protected String outputFileName;
+    protected String inputFileName;
     
 	protected void exit(int exitStatus) {
 		if (exitStatus == 0 ){
@@ -42,10 +45,25 @@ abstract public class CLIApplication extends Configured {
 	protected abstract Options buildOptions();
 	
 	protected void addOutputOptions(Options options) {
-		options.addOption("o","output", true, "Output fastq file");
+		options.addOption("o","output", true, "Output file");
 		options.addOption("removeOutput", false, "Remove old output");		
 	}
-	    
+
+	protected void addInputOptions(Options options) {
+		options.addOption("i","input", true, "Input file");
+	}
+
+	protected void checkInputOptionsInCmdLine(Options options, CommandLine cmd) {		
+		if (cmd.hasOption("i")) {
+			inputFileName = cmd.getOptionValue("i");
+			log.info(String.format("Input file '%s'", inputFileName));
+		} else {
+			log.error(String.format("Missing mandatory argument -i / --input"));			
+			help(options);
+			exit(-1);
+		}		
+	}
+	
 	protected void checkOutputOptionsInCmdLine(Options options, CommandLine cmd) {
 		
 		if (cmd.hasOption("o")) {
@@ -60,7 +78,18 @@ abstract public class CLIApplication extends Configured {
 			removeOldOutput=true;
 		} else {
 			removeOldOutput=false;
-		}		
-		
+		}				
 	}
+	
+	abstract protected Job createJob() throws Exception;
+	
+	@Override
+	public int run(String[] args) throws Exception {
+		parseCmdLine(args);
+		
+		Job job = createJob();
+		
+		return job.waitForCompletion(true) ? 0 : 1;
+	}
+	
 }
