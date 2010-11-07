@@ -62,9 +62,8 @@ public class FastaToSequenceFile extends ApplicationCmdLine implements Tool {
 		}
 	}
 
-	private String fastaFile;
-	private String qualFile;
-	private String fastqFile;
+	private String fastaFileName;
+	private String qualFileName;
 	
 	protected Options buildOptions() {
 		// create Options object
@@ -73,16 +72,16 @@ public class FastaToSequenceFile extends ApplicationCmdLine implements Tool {
 		// add t option
 		options.addOption("f","fasta", true, "Fasta/csfasta input file");
 		options.addOption("q","qual", true, "Qual file");
-		options.addOption("o","output", true, "Output Hadoop Sequence file");
-		options.addOption("removeOutput", false, "Remove old output");
+
+		addOutputOptions(options);
 		
 		return options;
 	}
 
 	protected void checkCmdLine(Options options,CommandLine cmd) {		
 		if (cmd.hasOption("f")) {
-			fastaFile = cmd.getOptionValue("f");
-			log.info(String.format("Input fasta file '%s'", fastaFile));
+			fastaFileName = cmd.getOptionValue("f");
+			log.info(String.format("Input fasta file '%s'", fastaFileName));
 		} else {
 			log.error(String.format("Missing mandatory argument -f / --fasta"));			
 			help(options);
@@ -91,38 +90,22 @@ public class FastaToSequenceFile extends ApplicationCmdLine implements Tool {
 
 
 		if (cmd.hasOption("q")) {
-			qualFile = cmd.getOptionValue("q");
-			log.info(String.format("Input Qual file '%s'", qualFile));
+			qualFileName = cmd.getOptionValue("q");
+			log.info(String.format("Input Qual file '%s'", qualFileName));
 		} else {
 			log.error(String.format("Missing mandatory argument -q / --qual"));			
 			help(options);
 			exit(-1);
 		}
-
-		
-		if (cmd.hasOption("o")) {
-			fastqFile = cmd.getOptionValue("o");
-			log.info(String.format("Output fastQ file '%s'", fastqFile));
-		} else {
-			log.error(String.format("Missing mandatory argument -o / --output"));			
-			help(options);
-			exit(-1);
-		}
-		
-		
-		if (cmd.hasOption("removeOutput")) {
-			removeOldOutput=true;
-		} else {
-			removeOldOutput=false;
-		}					
+		this.checkOutputOptionsInCmdLine(options, cmd);
 	}
 
 	@Override
 	public int run(String[] args) throws Exception {
 		parseCmdLine(args);
-		Path fastaPath = new Path(fastaFile);
-		Path qualPath = new Path(qualFile);
-		Path outputPath = new Path(fastqFile);
+		Path fastaPath = new Path(fastaFileName);
+		Path qualPath = new Path(qualFileName);
+		Path outputPath = new Path(outputFileName);
 		
 		
 		if (removeOldOutput) {

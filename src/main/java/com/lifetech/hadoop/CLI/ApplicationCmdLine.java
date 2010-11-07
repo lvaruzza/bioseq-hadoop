@@ -13,6 +13,7 @@ abstract public class ApplicationCmdLine extends Configured {
     private static Logger log = Logger.getLogger(ApplicationCmdLine.class);
 
     protected boolean removeOldOutput;
+    protected String outputFileName;
     
 	protected void exit(int exitStatus) {
 		if (exitStatus == 0 ){
@@ -39,5 +40,27 @@ abstract public class ApplicationCmdLine extends Configured {
 
 	protected abstract void checkCmdLine(Options options, CommandLine cmd);
 	protected abstract Options buildOptions();
+	
+	protected void addOutputOptions(Options options) {
+		options.addOption("o","output", true, "Output fastq file");
+		options.addOption("removeOutput", false, "Remove old output");		
+	}
 	    
+	protected void checkOutputOptionsInCmdLine(Options options, CommandLine cmd) {
+		
+		if (cmd.hasOption("o")) {
+			outputFileName = cmd.getOptionValue("o");
+			log.info(String.format("Output file '%s'", outputFileName));
+		} else {
+			log.error(String.format("Missing mandatory argument -o / --output"));			
+			help(options);
+			exit(-1);
+		}
+		if (cmd.hasOption("removeOutput")) {
+			removeOldOutput=true;
+		} else {
+			removeOldOutput=false;
+		}		
+		
+	}
 }
