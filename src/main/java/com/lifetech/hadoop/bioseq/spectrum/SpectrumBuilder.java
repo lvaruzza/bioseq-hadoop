@@ -98,6 +98,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 	private String inputFile;	
 	private String outputFile;
 	private boolean removeOldOutput = false;
+	private int kmerSize = 17;
 	
 	private void parseCmdLine(String[] args) throws ParseException {
 		// create Options object
@@ -106,6 +107,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		// add t option
 		options.addOption("i","input", true, "Fasta/csfasta input file");
 		options.addOption("o","output", true, "Output fastq file");
+		options.addOption("k","kmerSize", true, "kmer Size");
 		options.addOption("removeOutput", false, "Remove old output");
 		
 		CommandLineParser parser = new PosixParser();
@@ -129,6 +131,11 @@ public class SpectrumBuilder extends Configured implements Tool {
 			help(options);
 			exit(-1);
 		}		
+
+		if (cmd.hasOption("k")) {
+			kmerSize = Integer.parseInt(cmd.getOptionValue("k"));
+			log.info(String.format("Kmer size = %d",kmerSize));
+		}
 		
 		if (cmd.hasOption("removeOutput")) {
 			removeOldOutput=true;
@@ -149,7 +156,12 @@ public class SpectrumBuilder extends Configured implements Tool {
 			log.info(String.format("Removing '%s'", outputFile));
 			fs.delete(outputPath, true);
 		}
-		
+
+		getConf().setBoolean("mapred.output.compress", true);
+		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
+		getConf().setStrings("mapred.output.compression.type", "BLOCK");
+		getConf().setInt("spectrum.k", kmerSize);
+
 		Job job = new Job(getConf(), "spectrumBuild");
 
 		job.setJarByClass(SpectrumBuilder.class);
@@ -160,10 +172,6 @@ public class SpectrumBuilder extends Configured implements Tool {
 		job.setMapperClass(BuilderMapper.class);
 		job.setMapOutputKeyClass(BytesWritable.class);
 		job.setMapOutputValueClass(IntWritable.class);
-		getConf().setBoolean("mapred.output.compress", true);
-		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
-		getConf().setInt("spectrum.k", 17);
-		getConf().setStrings("mapred.output.compression.type", "BLOCK");
 
 		job.setCombinerClass(MergeReducer.class);
 		
