@@ -39,6 +39,29 @@ public class TestSpectrumBuilder {
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("01230")),new IntWritable(1));
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("12301")),new IntWritable(1));
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("23012")),new IntWritable(1));
+	}
+	
+	@Test
+	public void testSpectrumBuilderMapperWithReverse() throws IOException, InterruptedException {
+		SpectrumBuilder.BuilderMapper mapper = new SpectrumBuilder.BuilderMapper();
+		BioSeqWritable value = new BioSeqWritable();
+		value.set("test", "T0123012", null);
+
+		// OutputCollector<BytesWritable, IntWritable> output =
+		// mock(OutputCollector.class);
+		Configuration config = new Configuration();
+		config.setInt("spectrum.k", 5);
+		config.setBoolean("spectrum.doReverse", true);
+		Context context = mock(Context.class);
+		BioSeqEncoder encoder = BioSeqWritable.getEncoder();
+
+		when(context.getConfiguration()).thenReturn(config);
+
+		mapper.map(null, value, context);
+
+		verify(context,times(1)).write(new BytesWritable(encoder.encode("01230")),new IntWritable(1));
+		verify(context,times(1)).write(new BytesWritable(encoder.encode("12301")),new IntWritable(1));
+		verify(context,times(1)).write(new BytesWritable(encoder.encode("23012")),new IntWritable(1));
 		
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("03210")),new IntWritable(1));
 		verify(context,times(1)).write(new BytesWritable(encoder.encode("10321")),new IntWritable(1));

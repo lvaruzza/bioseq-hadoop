@@ -40,11 +40,13 @@ public class SpectrumBuilder extends Configured implements Tool {
 		//private BytesWritable kmer = new BytesWritable();
 		private IntWritable ONE = new IntWritable(1);
 
+        
 		public void map(Text key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
 
 			int k = context.getConfiguration().getInt("spectrum.k", 17);
-
+			boolean doReverse = context.getConfiguration().getBoolean("spectrum.doReverse", false);
+			
 			Text seq = value.getSequence();
 			int size = seq.getLength();
 			byte[] data = seq.getBytes();
@@ -61,7 +63,9 @@ public class SpectrumBuilder extends Configured implements Tool {
 				//context.write(kmer, ONE);
 				
 				context.write(new BytesWritable(r), ONE);
-				context.write(new BytesWritable(encoder.reverse(r)), ONE);
+				if (doReverse) {
+					context.write(new BytesWritable(encoder.reverse(r)), ONE);
+				}
 			}
 		}
 	}
@@ -99,6 +103,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 	private String outputFile;
 	private boolean removeOldOutput = false;
 	private int kmerSize = 17;
+	private boolean doReverse = false;
 	
 	private void parseCmdLine(String[] args) throws ParseException {
 		// create Options object
@@ -108,6 +113,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		options.addOption("i","input", true, "Fasta/csfasta input file");
 		options.addOption("o","output", true, "Output fastq file");
 		options.addOption("k","kmerSize", true, "kmer Size");
+		options.addOption("R","reverse", false, "Also use the reverse sequence in the spectrum");
 		options.addOption("removeOutput", false, "Remove old output");
 		
 		CommandLineParser parser = new PosixParser();
@@ -136,6 +142,11 @@ public class SpectrumBuilder extends Configured implements Tool {
 			kmerSize = Integer.parseInt(cmd.getOptionValue("k"));
 			log.info(String.format("Kmer size = %d",kmerSize));
 		}
+
+		if (cmd.hasOption("R")) {
+			doReverse = true;
+			log.info(String.format("Doing the reverse sequence in Spectrum"));
+		}
 		
 		if (cmd.hasOption("removeOutput")) {
 			removeOldOutput=true;
@@ -161,7 +172,8 @@ public class SpectrumBuilder extends Configured implements Tool {
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
 		getConf().setStrings("mapred.output.compression.type", "BLOCK");
 		getConf().setInt("spectrum.k", kmerSize);
-
+		getConf().setBoolean("spectrum.doReverse", doReverse);
+		
 		Job job = new Job(getConf(), "spectrumBuild");
 
 		job.setJarByClass(SpectrumBuilder.class);
