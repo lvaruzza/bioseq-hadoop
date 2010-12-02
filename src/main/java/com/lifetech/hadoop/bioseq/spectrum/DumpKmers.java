@@ -45,7 +45,8 @@ public class DumpKmers {
 		if (fs.getFileStatus(path).isDir()) {
 			FileStatus[] files = fs.listStatus(path);
 			for (FileStatus file : files) {
-				dumpFile(file.getPath());
+				if (!file.isDir())
+					dumpFile(file.getPath());
 			}
 		} else {
 			dumpFile(path);
