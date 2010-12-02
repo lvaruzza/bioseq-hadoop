@@ -31,7 +31,8 @@ package com.lifetech.hadoop.bioseq;
 
 public class FourBitsEncoder extends BioSeqEncoder {
 	private static byte[] compl = {
-			0x03,0x02,0x01,0x00,0x04,0x05,0x06,0x07,0x08,0x09,0x0A,0x0B,0x0C
+			0x03,0x02,0x01,0x00,0x04,0x05,0x06,0x07,
+			0x08,0x09,0x0A,0x0B,0x0C,0x0D,0X0E,0X0F
 	};
 	
 	private static byte[] encodingVector={
@@ -409,9 +410,9 @@ public class FourBitsEncoder extends BioSeqEncoder {
 	public byte[] complement(byte[] s, int start, int length) {
 		byte[] c = new byte[length];
 		for(int i=start,j=0;i<start+length;i++,j++) {
-			byte u = (byte) (s[i]  >> 4);
+			byte u = (byte) ((s[i]  >> 4) & 0x0f);
 			byte l = (byte) ((s[i] & 0x0f));
-			c[j] = (byte) (compl[u] << 4  | compl[l]); //compl(l));
+			c[j] = (byte) (compl[u]	 << 4  | compl[l]); //compl(l));
 		}
 		return c;
 	}	
