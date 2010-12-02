@@ -35,7 +35,7 @@ public class DumpKmers {
 				System.out.printf("%s\t%d\n", kmer.toString(),value.get());
 				totalKmers ++;
 				if (value.get() == 1) {
-					oneCountKmers = 0;
+					oneCountKmers ++;
 				}
 			}
 		} finally {
