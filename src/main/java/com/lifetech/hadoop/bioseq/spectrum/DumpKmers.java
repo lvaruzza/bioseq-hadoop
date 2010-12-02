@@ -20,7 +20,8 @@ public class DumpKmers {
 	private FourBitsEncoder enc = new FourBitsEncoder(); 
 	private FileSystem fs;
 	private Configuration conf;
-	
+	private long oneCountKmers = 0;
+	private long totalKmers = 0;
 	private void dumpFile(Path path) throws IOException {
 		SequenceFile.Reader reader = null;
 		try {
@@ -32,6 +33,10 @@ public class DumpKmers {
 				Text kmer = enc.decode(key); 
 				//enc.printBytes(key.getBytes(), key.getLength());
 				System.out.printf("%s\t%d\n", kmer.toString(),value.get());
+				totalKmers ++;
+				if (value.get() == 1) {
+					oneCountKmers = 0;
+				}
 			}
 		} finally {
 			IOUtils.closeStream(reader);
@@ -51,7 +56,11 @@ public class DumpKmers {
 		} else {
 			dumpFile(path);
 		}
+		
+		System.err.printf("Total kmers   = %d", this.totalKmers);
+		System.err.printf("1-count kmers = %d", this.oneCountKmers);
 	}
+	
 	public static void main(String[] args) throws IOException {
 		String uri = args[0];
 		new DumpKmers().run(uri);
