@@ -126,5 +126,6 @@ public class TestFourBitsEncoder {
 		runTestComplement("T01230123012");
 		runTestComplement("ACGT");
 		runTestComplement("ACGT0123acgt");
+		runTestComplement("NNNNNACGN9123N");
 	}
 }
