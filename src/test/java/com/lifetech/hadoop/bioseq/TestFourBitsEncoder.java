@@ -106,5 +106,25 @@ public class TestFourBitsEncoder {
 
 		assertTrue(Arrays.equals(f, rr));
 	}
+
+	private void runTestComplement(String s) {
+		byte[] f = encoder.encode(s.getBytes());
+		byte[] c = encoder.complement(f);
+		System.out.println(s);
+		System.out.println(new String(encoder.decode(c)));
+		FourBitsEncoder.printBytes(f);
+		System.out.println();
+		FourBitsEncoder.printBytes(c);
+		System.out.println();
+		
+		byte[] cc = encoder.complement(c);
+		assertTrue(Arrays.equals(f, cc));		
+	}
 	
+	@Test
+	public void testComplement() {
+		runTestComplement("T01230123012");
+		runTestComplement("ACGT");
+		runTestComplement("ACGT0123acgt");
+	}
 }

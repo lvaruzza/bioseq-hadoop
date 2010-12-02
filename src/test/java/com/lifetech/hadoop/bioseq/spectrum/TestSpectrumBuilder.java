@@ -29,6 +29,7 @@ public class TestSpectrumBuilder {
 		// mock(OutputCollector.class);
 		Configuration config = new Configuration();
 		config.setInt("spectrum.k", 5);
+		config.setInt("spectrum.leftTrim", 1);
 		Context context = mock(Context.class);
 		BioSeqEncoder encoder = BioSeqWritable.getEncoder();
 
@@ -51,6 +52,7 @@ public class TestSpectrumBuilder {
 		// mock(OutputCollector.class);
 		Configuration config = new Configuration();
 		config.setInt("spectrum.k", 5);
+		config.setInt("spectrum.leftTrim", 1);
 		config.setBoolean("spectrum.doReverse", true);
 		Context context = mock(Context.class);
 		BioSeqEncoder encoder = BioSeqWritable.getEncoder();

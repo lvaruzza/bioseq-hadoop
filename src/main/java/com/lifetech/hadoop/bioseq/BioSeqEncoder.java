@@ -54,5 +54,14 @@ abstract public class BioSeqEncoder {
 		return reverse(data,0,data.length);
 	}
 	
+	abstract public byte[] complement(byte[] r, int start, int length);
+
+	public byte[] complement(byte [] data,int size) {
+		return complement(data,0,size);
+	}
 	
+	public byte[] complement(byte [] data) {
+		return complement(data,0,data.length);
+	}
+
 }

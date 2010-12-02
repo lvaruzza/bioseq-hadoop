@@ -1,13 +1,11 @@
 package com.lifetech.hadoop.bioseq;
 
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.Text;
 
 /*
  * codes:
- * 'A' => 0000,   0x00
- * 'C' => 0001,   0x01
- * 'G' => 0010,   0x
+ * 'A' => 0000,
+ * 'C' => 0001, 
+ * 'G' => 0010,
  * 'T' => 0011,
  * 'N' => 0100,
  * '0' => 1000,
@@ -401,5 +399,20 @@ public class FourBitsEncoder extends BioSeqEncoder {
 		}
 		r[length-1] |= 0x0f;
 		return r;
+	}
+
+	private byte compl(byte x) {
+		return ((x & 0x08) == 0x08) ? x : (byte)((~x) & 0x03);
+	} 
+	
+	@Override
+	public byte[] complement(byte[] s, int start, int length) {
+		byte[] c = new byte[length];
+		for(int i=start,j=0;i<start+length;i++,j++) {
+			byte u = (byte) (s[i]  >> 4);
+			byte l = (byte) ((s[i] & 0x0f));
+			c[j] = (byte) (compl(u) << 4  | compl(l)); //compl(l));
+		}
+		return c;
 	}	
 }

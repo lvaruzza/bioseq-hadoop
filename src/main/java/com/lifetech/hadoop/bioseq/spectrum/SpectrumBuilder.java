@@ -45,12 +45,16 @@ public class SpectrumBuilder extends Configured implements Tool {
 				throws IOException, InterruptedException {
 
 			int k = context.getConfiguration().getInt("spectrum.k", 17);
+			int leftTrim = context.getConfiguration().getInt("spectrum.leftTrim", 0);
+			int rightTrim = context.getConfiguration().getInt("spectrum.rightTrim", 0);
+			
 			boolean doReverse = context.getConfiguration().getBoolean("spectrum.doReverse", false);
+			boolean doComplement = context.getConfiguration().getBoolean("spectrum.doReverse", true);
 			
 			Text seq = value.getSequence();
 			int size = seq.getLength();
 			byte[] data = seq.getBytes();
-			for (int i = 1; i < size - k + 1; i++) {
+			for (int i = leftTrim; i < size - k + 1 -rightTrim; i++) {
 				byte [] r=encoder.encode(data, i, k);
 
 				/*System.out.println("encoded: ");
@@ -64,7 +68,11 @@ public class SpectrumBuilder extends Configured implements Tool {
 				
 				context.write(new BytesWritable(r), ONE);
 				if (doReverse) {
-					context.write(new BytesWritable(encoder.reverse(r)), ONE);
+					if (doComplement) {
+						context.write(new BytesWritable(encoder.complement(encoder.reverse(r))), ONE);						
+					} else {
+						context.write(new BytesWritable(encoder.reverse(r)), ONE);
+					}
 				}
 			}
 		}
@@ -104,6 +112,9 @@ public class SpectrumBuilder extends Configured implements Tool {
 	private boolean removeOldOutput = false;
 	private int kmerSize = 17;
 	private boolean doReverse = false;
+	private boolean doComplement = true;
+	private int leftTrim = 0;
+	private int rightTrim = 0;
 	
 	private void parseCmdLine(String[] args) throws ParseException {
 		// create Options object
@@ -112,9 +123,13 @@ public class SpectrumBuilder extends Configured implements Tool {
 		// add t option
 		options.addOption("i","input", true, "Fasta/csfasta input file");
 		options.addOption("o","output", true, "Output fastq file");
+		options.addOption("removeOutput", false, "Remove old output");
+
 		options.addOption("k","kmerSize", true, "kmer Size");
 		options.addOption("R","reverse", false, "Also use the reverse sequence in the spectrum");
-		options.addOption("removeOutput", false, "Remove old output");
+		options.addOption("nc","noComplement", false, "Do not do the complement when doing the reverse");
+		options.addOption("lt","leftTrim", true, "Trim the read on left");
+		options.addOption("rt","rightTrim", true, "Trim the read on right");
 		
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd = parser.parse( options, args);
@@ -143,11 +158,26 @@ public class SpectrumBuilder extends Configured implements Tool {
 			log.info(String.format("Kmer size = %d",kmerSize));
 		}
 
+		if (cmd.hasOption("lt")) {
+			leftTrim = Integer.parseInt(cmd.getOptionValue("lt"));
+			log.info(String.format("Left Trim = %d",leftTrim));
+		}
+
+		if (cmd.hasOption("rt")) {
+			rightTrim = Integer.parseInt(cmd.getOptionValue("rt"));
+			log.info(String.format("Right Trim = %d",rightTrim));
+		}
+		
 		if (cmd.hasOption("R")) {
 			doReverse = true;
 			log.info(String.format("Doing the reverse sequence in Spectrum"));
 		}
-		
+
+		if (cmd.hasOption("nc")) {
+			doComplement = false;
+			log.info(String.format("NOT Doing the complment when doing the reverse in Spectrum"));
+		}
+	
 		if (cmd.hasOption("removeOutput")) {
 			removeOldOutput=true;
 		} else {
@@ -172,6 +202,8 @@ public class SpectrumBuilder extends Configured implements Tool {
 		getConf().setClass("mapred.output.compression.codec", LzoCodec.class,CompressionCodec.class);
 		getConf().setStrings("mapred.output.compression.type", "BLOCK");
 		getConf().setInt("spectrum.k", kmerSize);
+		getConf().setInt("spectrum.leftTrim", leftTrim);
+		getConf().setInt("spectrum.rightTrim", rightTrim);
 		getConf().setBoolean("spectrum.doReverse", doReverse);
 		
 		Job job = new Job(getConf(), "spectrumBuild");
