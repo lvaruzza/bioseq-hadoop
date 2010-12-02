@@ -192,7 +192,7 @@ public class BioSeqWritable implements Writable,WritableComparable<BioSeqWritabl
 
 	public void set(String id, String sequence, byte[] quality) {
 		this.id = id == null ? new Text() : new Text(id);
-		this.sequence = sequence == null ? new Text() : new Text(sequence);
+		this.sequence = sequence == null ? new Text() : new Text(sequence.replaceAll("\\s", ""));
 		this.quality = quality == null ? new BytesWritable() : new BytesWritable(quality);
 	}
 	
