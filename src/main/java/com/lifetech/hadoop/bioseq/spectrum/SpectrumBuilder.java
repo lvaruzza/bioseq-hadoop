@@ -205,6 +205,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		getConf().setInt("spectrum.leftTrim", leftTrim);
 		getConf().setInt("spectrum.rightTrim", rightTrim);
 		getConf().setBoolean("spectrum.doReverse", doReverse);
+		getConf().setBoolean("spectrum.doComplement", doComplement);
 		
 		Job job = new Job(getConf(), "spectrumBuild");
 
