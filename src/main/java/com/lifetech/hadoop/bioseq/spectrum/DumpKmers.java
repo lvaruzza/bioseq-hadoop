@@ -57,8 +57,9 @@ public class DumpKmers {
 			dumpFile(path);
 		}
 		
-		System.err.printf("Total kmers   = %d", this.totalKmers);
-		System.err.printf("1-count kmers = %d", this.oneCountKmers);
+		System.err.printf("Total kmers   = %d\n", totalKmers);
+		System.err.printf("1-count kmers = %d (%.2f%%)\n", oneCountKmers,
+				oneCountKmers*100.0/totalKmers);
 	}
 	
 	public static void main(String[] args) throws IOException {
