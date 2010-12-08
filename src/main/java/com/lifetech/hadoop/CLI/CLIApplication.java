@@ -1,5 +1,7 @@
 package com.lifetech.hadoop.CLI;
 
+import java.io.IOException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -83,10 +85,14 @@ abstract public class CLIApplication extends Configured implements Tool {
 	
 	abstract protected Job createJob() throws Exception;
 	
+	protected void beforeMR() throws IOException {
+	}
+
 	@Override
 	public int run(String[] args) throws Exception {
 		parseCmdLine(args);
-		
+
+		beforeMR();
 		Job job = createJob();
 		
 		return job.waitForCompletion(true) ? 0 : 1;

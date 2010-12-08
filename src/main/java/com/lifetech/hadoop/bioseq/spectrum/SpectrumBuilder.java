@@ -3,12 +3,7 @@ package com.lifetech.hadoop.bioseq.spectrum;
 import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -25,13 +20,13 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
 import com.hadoop.compression.lzo.LzoCodec;
+import com.lifetech.hadoop.CLI.CLIApplication;
 import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.bioseq.FourBitsEncoder;
-import com.lifetech.hadoop.bioseq.converters.FastaToFastq;
 
-public class SpectrumBuilder extends Configured implements Tool {
-    private static Logger log = Logger.getLogger(FastaToFastq.class);	
+public class SpectrumBuilder extends CLIApplication implements Tool {
+    private static Logger log = Logger.getLogger(SpectrumBuilder.class);	
 	private static BioSeqEncoder encoder = new FourBitsEncoder();
 	
 	public static class BuilderMapper extends
@@ -92,38 +87,20 @@ public class SpectrumBuilder extends Configured implements Tool {
 			context.write(key, new IntWritable(sum));
 		}
 	}
-
-	private void exit(int exitStatus) {
-		if (exitStatus == 0 ){
-			log.info("Program successfully finishied");
-		} else {
-			log.info("Program finishied with ERROR!!!!");			
-		}
-		System.exit(exitStatus);
-	}
-
-	private void help(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp( "FastaToFastq", options );
-	}
 	
-	private String inputFile;	
-	private String outputFile;
-	private boolean removeOldOutput = false;
+	private String inputFileName;	
 	private int kmerSize = 17;
 	private boolean doReverse = false;
 	private boolean doComplement = true;
 	private int leftTrim = 0;
 	private int rightTrim = 0;
-	
-	private void parseCmdLine(String[] args) throws ParseException {
+
+	protected Options buildOptions() {
 		// create Options object
 		Options options = new Options();
 
 		// add t option
-		options.addOption("i","input", true, "Fasta/csfasta input file");
-		options.addOption("o","output", true, "Output fastq file");
-		options.addOption("removeOutput", false, "Remove old output");
+		options.addOption("i","input", true, "SequenceFile input file");
 
 		options.addOption("k","kmerSize", true, "kmer Size");
 		options.addOption("R","reverse", false, "Also use the reverse sequence in the spectrum");
@@ -131,12 +108,15 @@ public class SpectrumBuilder extends Configured implements Tool {
 		options.addOption("lt","leftTrim", true, "Trim the read on left");
 		options.addOption("rt","rightTrim", true, "Trim the read on right");
 		
-		CommandLineParser parser = new PosixParser();
-		CommandLine cmd = parser.parse( options, args);
+		addOutputOptions(options);
 		
+		return options;
+	}
+	
+	protected void checkCmdLine(Options options, CommandLine cmd) {		
 		if (cmd.hasOption("i")) {
-			inputFile = cmd.getOptionValue("i");
-			log.info(String.format("Input file '%s'", inputFile));
+			inputFileName = cmd.getOptionValue("i");
+			log.info(String.format("Input file '%s'", inputFileName));
 		} else {
 			log.error(String.format("Missing mandatory argument -i / --input"));			
 			help(options);
@@ -144,15 +124,6 @@ public class SpectrumBuilder extends Configured implements Tool {
 		}
 		
 		
-		if (cmd.hasOption("o")) {
-			outputFile = cmd.getOptionValue("o");
-			log.info(String.format("Output path '%s'", outputFile));
-		} else {
-			log.error(String.format("Missing mandatory argument -o / --output"));			
-			help(options);
-			exit(-1);
-		}		
-
 		if (cmd.hasOption("k")) {
 			kmerSize = Integer.parseInt(cmd.getOptionValue("k"));
 			log.info(String.format("Kmer size = %d",kmerSize));
@@ -178,23 +149,17 @@ public class SpectrumBuilder extends Configured implements Tool {
 			log.info(String.format("NOT Doing the complment when doing the reverse in Spectrum"));
 		}
 	
-		if (cmd.hasOption("removeOutput")) {
-			removeOldOutput=true;
-		} else {
-			removeOldOutput=false;
-		}
+		this.checkOutputOptionsInCmdLine(options, cmd);		
 	}
 	
 	@Override
-	public int run(String[] args) throws Exception {
-		parseCmdLine(args);
-		
-		Path inputPath = new Path(inputFile);
-		Path outputPath = new Path(outputFile);
+	protected Job createJob() throws Exception {
+		Path inputPath = new Path(inputFileName);
+		Path outputPath = new Path(outputFileName);
 
 		if (removeOldOutput) {
 			FileSystem fs = outputPath.getFileSystem(getConf());
-			log.info(String.format("Removing '%s'", outputFile));
+			log.info(String.format("Removing '%s'", outputFileName));
 			fs.delete(outputPath, true);
 		}
 
@@ -230,7 +195,7 @@ public class SpectrumBuilder extends Configured implements Tool {
 		SequenceFileOutputFormat.setCompressOutput(job, true);
 		SequenceFileOutputFormat.setOutputCompressorClass(job, LzoCodec.class);
 
-		return job.waitForCompletion(true) ? 0 : 1;
+		return job;
 	}
 
 	public static void main(String[] args) throws Exception {

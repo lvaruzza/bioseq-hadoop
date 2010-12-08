@@ -3,7 +3,8 @@ package com.lifetech.hadoop.bioseq.spectrum;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.hadoop.conf.Configured;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -21,11 +22,15 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
+
+import com.lifetech.hadoop.CLI.CLIApplication;
 
 /*
  * Import to Hbase kmers to error correction
  */
-public class KmerToHbase extends Configured implements Tool {
+public class KmerToHbase extends CLIApplication implements Tool {
+    private static Logger log = Logger.getLogger(KmerToHbase.class);	
 
 	public static class CopyMapper
 			extends
@@ -54,6 +59,56 @@ public class KmerToHbase extends Configured implements Tool {
 			context.write(key, put);
 		}
 	}
+
+
+	@Override
+	protected Options buildOptions() {
+		// create Options object
+		Options options = new Options();
+
+		// add t option
+		this.addInputOptions(options);
+		options.addOption("t","table", true, "Table Name");
+		return options;
+	}
+	
+	private String tableName;
+	
+	@Override
+	protected void checkCmdLine(Options options, CommandLine cmd) {
+		this.checkInputOptionsInCmdLine(options, cmd);
+
+		if (cmd.hasOption("t")) {
+			tableName = cmd.getOptionValue("t");
+			log.info(String.format("Table Name '%s'", tableName));
+		} else {
+			log.error(String.format("Missing mandatory argument -t / --table"));			
+			help(options);
+			exit(-1);
+		}
+			
+	}
+
+	@Override
+	protected Job createJob() throws Exception {
+		Job job = new Job(getConf(), "KmerHbaseImport");
+
+		//getConf().setBoolean("keep.failed.task.files", true);
+		
+		job.setJarByClass(KmerToHbase.class);
+
+		job.setInputFormatClass(SequenceFileInputFormat.class);
+		SequenceFileInputFormat.setInputPaths(job, inputFileName);
+
+		job.setMapperClass(CopyMapper.class);
+		job.setMapOutputKeyClass(BytesWritable.class);
+		job.setMapOutputValueClass(IntWritable.class);
+
+		job.setReducerClass(TableUploader.class);
+		job.setOutputFormatClass(TableOutputFormat.class);
+		job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, tableName);
+		return job;
+	}
 	
 	private void recreateTable(String name) throws IOException {
 		System.out.printf("Creating Table '%s'\n",name);
@@ -73,36 +128,11 @@ public class KmerToHbase extends Configured implements Tool {
 		admin.createTable(htd);		
 	}
 
-	private int runMR(String tableName,Path inputPath) throws IOException, InterruptedException, ClassNotFoundException {		
-		Job job = new Job(getConf(), "KmerHbaseImport");
-
-		//getConf().setBoolean("keep.failed.task.files", true);
-		
-		job.setJarByClass(KmerToHbase.class);
-
-		job.setInputFormatClass(SequenceFileInputFormat.class);
-		SequenceFileInputFormat.setInputPaths(job, inputPath);
-
-		job.setMapperClass(CopyMapper.class);
-		job.setMapOutputKeyClass(BytesWritable.class);
-		job.setMapOutputValueClass(IntWritable.class);
-
-		job.setReducerClass(TableUploader.class);
-		job.setOutputFormatClass(TableOutputFormat.class);
-		job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, tableName);
-		
-		return job.waitForCompletion(true) ? 0 : 1;		
-	}
 	@Override
-	public int run(String[] args) throws Exception {
-		Path inputPath = new Path(args[0]);
-		// Path outputPath = new Path(args[1]);
-		String tableName="kmers";
-		
-		recreateTable(tableName);
-		return runMR(tableName,inputPath);
+	protected void beforeMR() throws IOException {
+		recreateTable(tableName);	
 	}
-
+	
 	public static void main(String[] args) throws Exception {
 		int ret = ToolRunner.run(new KmerToHbase(), args);
 		System.exit(ret);

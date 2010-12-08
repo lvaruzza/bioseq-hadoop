@@ -1,5 +1,6 @@
 #!/bin/perl -w
  
+use Bio::Perl;
 use Bio::SeqIO;
 use strict;
 
@@ -15,7 +16,8 @@ while (my $seq = $seqio->next_seq){
     for (my $i=0;$i<length($s)-$k+1;$i++) {
 	my $f = uc(substr($s,$i,$k));
 	$f =~ s/[^ACGT0123\.]/N/g;
-	$h{$f}++;
+	$h{$f}++;	
+	$h{revcom($f)->seq}++;	
     }
 }
 
@@ -31,5 +33,6 @@ while (my ($ff,$c) = each %h) {
 }
 
 print STDERR  "Total kmers   = $total\n";
-print STDERR  sprintf("1-count kmers = %d (%.2f%%)\n",$oneCount,$oneCount*100.0/$total);
-
+if ($total != 0) {
+    print STDERR  sprintf("1-count kmers = %d (%.2f%%)\n",$oneCount,$oneCount*100.0/$total);
+}
