@@ -13,6 +13,7 @@ package com.lifetech.hadoop.bioseq;
  * '2' => 1010,
  * '3' => 1011,
  * '.' => 1100
+ * '4' => 1101
  * 
  *  padding 1111
  *  00 => A
@@ -25,6 +26,7 @@ package com.lifetech.hadoop.bioseq;
  *  0A => 2
  *  0B => 3
  *  0C => .
+ *  0D => 4
  *  
  *  0T 21
  */
@@ -88,7 +90,7 @@ public class FourBitsEncoder extends BioSeqEncoder {
 			0x09 , // 1
 			0x0a , // 2
 			0x0b , // 3
-			0x04 , // 4
+			0x0d , // 4
 			0x04 , // 5
 			0x04 , // 6
 			0x04 , // 7
