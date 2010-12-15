@@ -24,8 +24,8 @@ import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.bioseq.FourBitsEncoder;
 
-public class SequenceDist extends CLIApplication implements Tool {
-	private static Logger log = Logger.getLogger(SequenceDist.class);
+public class SequenceDups extends CLIApplication implements Tool {
+	private static Logger log = Logger.getLogger(SequenceDups.class);
 	private static BioSeqEncoder encoder = new FourBitsEncoder();
 
 	public static class CountSeqMapper extends
@@ -68,7 +68,9 @@ public class SequenceDist extends CLIApplication implements Tool {
 			for (IntWritable count : values) {
 				sum += count.get();
 			}
-			context.write(encoder.decode(key), new IntWritable(sum));
+			if (sum > 1) {
+				context.write(encoder.decode(key), new IntWritable(sum));
+			}
 		}
 	}
 
@@ -99,9 +101,9 @@ public class SequenceDist extends CLIApplication implements Tool {
 			fs.delete(outputPath, true);
 		}
 
-		Job job = new Job(getConf(), "sequenceDist");
+		Job job = new Job(getConf(), "sequenceDups");
 
-		job.setJarByClass(SequenceDist.class);
+		job.setJarByClass(SequenceDups.class);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		SequenceFileInputFormat.setInputPaths(job, inputPath);
@@ -126,7 +128,7 @@ public class SequenceDist extends CLIApplication implements Tool {
 	}
 
 	public static void main(String[] args) throws Exception {
-		int ret = ToolRunner.run(new SequenceDist(), args);
+		int ret = ToolRunner.run(new SequenceDups(), args);
 		System.exit(ret);
 	}
 }
