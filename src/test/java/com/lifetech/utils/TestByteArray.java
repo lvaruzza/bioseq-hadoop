@@ -34,5 +34,7 @@ public class TestByteArray {
 		testSplitIterable0(" 1 2 ","[, 1, 2]");
 		testSplitIterable0("1 2  ","[1, 2, ]");
 		testSplitIterable0("","[]");		
+		testSplitIterable0("1024","[1024]");
+		testSplitIterable0("1024 13","[1024, 13]");
 	}
 }

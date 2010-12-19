@@ -11,7 +11,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import com.lifetech.hadoop.bioseq.BioSeqEncoder;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
-import com.lifetech.hadoop.bioseq.FourBitsEncoder;
+import com.lifetech.utils.ByteArray;
 
 public class HbaseErrorCorrector {
 	private HTable table;
@@ -27,7 +27,7 @@ public class HbaseErrorCorrector {
 	private static byte[] countColName = Bytes.toBytes("data:count");
 	
 	public int getKmerCount(byte[] encodedKmer) throws IOException {
-		FourBitsEncoder.printBytes(encodedKmer, encodedKmer.length);
+		ByteArray.printBytes(encodedKmer, encodedKmer.length);
 		Get g = new Get(encodedKmer);
 		Result result = table.get(g);	
 		if (result.isEmpty()) {

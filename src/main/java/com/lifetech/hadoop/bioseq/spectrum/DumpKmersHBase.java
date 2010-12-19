@@ -11,6 +11,7 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import com.lifetech.hadoop.bioseq.FourBitsEncoder;
+import com.lifetech.utils.ByteArray;
 
 public class DumpKmersHBase {
 	public static void main(String[] args) throws IOException {
@@ -28,7 +29,7 @@ public class DumpKmersHBase {
 
 		try {
 			for (Result r : scanner) {
-				FourBitsEncoder.printBytes(r.getRow(), r.getRow().length);
+				ByteArray.printBytes(r.getRow(), r.getRow().length);
 				System.out.print("\t");
 				System.out.print(new String(enc.decode(r.getRow(),r.getRow().length)));
 				System.out.print("\t");

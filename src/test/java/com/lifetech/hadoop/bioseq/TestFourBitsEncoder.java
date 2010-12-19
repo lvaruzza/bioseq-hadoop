@@ -7,6 +7,8 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
+import com.lifetech.utils.ByteArray;
+
 public class TestFourBitsEncoder {
 
 	private FourBitsEncoder encoder = new FourBitsEncoder(); 
@@ -15,7 +17,7 @@ public class TestFourBitsEncoder {
 	public void testEvenSize() {
 		byte[] a = "T012".getBytes();
 		byte[] b = encoder.encode(a, 4);
-		FourBitsEncoder.printBytes(b,2);
+		ByteArray.printBytes(b,2);
 		byte[] c = encoder.decode(b,2);
 		System.out.println(new String(c));
 		assertEquals(new String(a),new String(c));
@@ -25,7 +27,7 @@ public class TestFourBitsEncoder {
 	public void testOddSize() {
 		byte[] a = "T0123".getBytes();
 		byte[] b = encoder.encode(a, 5);
-		FourBitsEncoder.printBytes(b,3);
+		ByteArray.printBytes(b,3);
 		byte[] c = encoder.decode(b,3);
 		System.out.println(new String(a) + " [" + new String(c) + "|");
 		assertEquals(new String(a),new String(c));
@@ -36,7 +38,7 @@ public class TestFourBitsEncoder {
 		byte[] orig = "T01231111".getBytes();
 		byte[] a = Arrays.copyOfRange(orig, 5, 9);
 		byte[] b = encoder.encode(orig, 5,4);
-		FourBitsEncoder.printBytes(b,2);
+		ByteArray.printBytes(b,2);
 		System.out.println("");
 		
 		byte[] c = encoder.decode(b,b.length);
@@ -49,7 +51,7 @@ public class TestFourBitsEncoder {
 		byte[] orig = "T01231111".getBytes();
 		byte[] a = Arrays.copyOfRange(orig, 4, 9);
 		byte[] b = encoder.encode(orig, 4,5);
-		FourBitsEncoder.printBytes(b,3);
+		ByteArray.printBytes(b,3);
 		System.out.println("");
 		
 		byte[] c = encoder.decode(b,b.length);
@@ -60,7 +62,7 @@ public class TestFourBitsEncoder {
 	@Test
 	public void testSubArrayDecode() {
 		byte[] orig = {0,0,(byte)0x99,(byte)0x99,0};
-		FourBitsEncoder.printBytes(orig,orig.length);
+		ByteArray.printBytes(orig,orig.length);
 		System.out.println();
 		
 		byte[] c = encoder.decode(orig,2,2);
@@ -81,7 +83,7 @@ public class TestFourBitsEncoder {
 			for(int j=0;j<i;j++) { System.out.print(' '); };
 			byte[] decoded = encoder.decode(kmer, kmer.length);
 			System.out.printf("%s\t\t",new String(decoded));
-			FourBitsEncoder.printBytes(kmer, kmer.length);
+			ByteArray.printBytes(kmer, kmer.length);
 			System.out.println();
 			assertEquals(s.substring(i, i+k),new String(decoded));
 		}
@@ -112,9 +114,9 @@ public class TestFourBitsEncoder {
 		byte[] c = encoder.complement(f);
 		System.out.println(s);
 		System.out.println(new String(encoder.decode(c)));
-		FourBitsEncoder.printBytes(f);
+		ByteArray.printBytes(f);
 		System.out.println();
-		FourBitsEncoder.printBytes(c);
+		ByteArray.printBytes(c);
 		System.out.println();
 		
 		byte[] cc = encoder.complement(c);
