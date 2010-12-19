@@ -1,4 +1,4 @@
-package com.lifetech.hadoop.bioseq.converters;
+package com.lifetech.hadoop.alignment.converters;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -21,41 +21,36 @@ import org.apache.log4j.Logger;
 
 import com.hadoop.compression.lzo.LzoCodec;
 import com.lifetech.hadoop.CLI.CLIApplication;
+import com.lifetech.hadoop.alignment.GFFParser;
+import com.lifetech.hadoop.alignment.GFFRec;
+import com.lifetech.hadoop.alignment.GeneWritable;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 
-public class FastaToSequenceFile extends CLIApplication implements Tool {
-	private static Logger log = Logger.getLogger(FastaToSequenceFile.class);
+public class GTFToSequenceFile extends CLIApplication implements Tool {
+	private static Logger log = Logger.getLogger(GTFToSequenceFile.class);
 
 	public static class CopyMapperWithId extends
-			Mapper<LongWritable, BioSeqWritable, Text, BioSeqWritable> {
+			Mapper<LongWritable, Text, Text, GFFRec> {
 
-		public void map(LongWritable key, BioSeqWritable value, Context context)
+		private static GFFParser parser = new GFFParser();
+		
+		public void map(LongWritable key, Text line, Context context)
 				throws IOException, InterruptedException {
-			context.write(value.getId(), value);
+			
+			GFFRec gff = parser.parse(line);
+			
+			context.write(new Text(/* something*/), gff);
 		}
 	}
 
 	public static class MergeReducer extends
-			Reducer<Text, BioSeqWritable, Text, BioSeqWritable> {
+			Reducer<Text, GFFRec, Text, GeneWritable> {
 
-		public void reduce(Text key, Iterable<BioSeqWritable> values,
+		public void reduce(Text key, Iterable<GFFRec> values,
 				Context context) throws IOException, InterruptedException {
-			Text seq = new Text();
-			BytesWritable qual = new BytesWritable();
 
-			for (BioSeqWritable val : values) {
-				if (val.getType() == BioSeqWritable.BioSeqType.SequenceOnly)
-					seq.set(val.getSequence());
-				else if (val.getType() == BioSeqWritable.BioSeqType.QualityOnly)
-					qual.set(val.getQuality());
-				else
-					throw new RuntimeException(String.format(
-							"Invalid SeqType '%s' in sequence '%s'", val
-									.getType().name(), val.getId().toString()));
-			}
-
-			context.write(key, new BioSeqWritable(key, seq, qual));
+			//context.write(key, new BioSeqWritable(key, seq, qual));
 		}
 	}
 
@@ -148,18 +143,9 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 			}
 		}
 
-		if (fastaPath.getName().endsWith(".csfasta")) {
-			log.info("Color Space Fasta");
-			getConf().setBoolean("fastaformat.addFistQualityValue", true);
-			if (!useQualFile) {
-				getConf().setInt("fastaToSequenceFile.qualValue", constantQualValue);
-			}
-			log.info("fastaformat.addFistQualityValue set to true");
-		}
+		Job job = new Job(getConf(), "GFFToSequenceFile");
 
-		Job job = new Job(getConf(), "FastaToSequenceFile");
-
-		job.setJarByClass(FastaToSequenceFile.class);
+		job.setJarByClass(GTFToSequenceFile.class);
 		job.setInputFormatClass(FastaInputFormat.class);
 
 		if (useQualFile) {
@@ -194,7 +180,7 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 	}
 
 	public static void main(String[] args) throws Exception {
-		int ret = ToolRunner.run(new FastaToSequenceFile(), args);
+		int ret = ToolRunner.run(new GTFToSequenceFile(), args);
 		System.exit(ret);
 	}
 }

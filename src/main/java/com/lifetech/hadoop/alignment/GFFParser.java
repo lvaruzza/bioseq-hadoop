@@ -22,6 +22,11 @@ public class GFFParser {
 		
 		return map;
 	}
+	
+	public GFFRec parse(Text line) {
+		return parse(line.getBytes(),0,line.getLength());
+	}
+	
 	public GFFRec parse(byte [] buff,int buffStart,int buffLen) {
 		Iterator<byte[]> it = ByteArray.splitIterator(buff, (byte) '\t', buffStart, buffLen);
 		
