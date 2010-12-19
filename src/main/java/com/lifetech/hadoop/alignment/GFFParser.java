@@ -14,10 +14,12 @@ import com.lifetech.utils.ByteArray;
 public class GFFParser {
 
 	public MapWritable readProperties(byte[] buff) {
+		System.out.println("|" + (new String(buff)) + "|");
 		MapWritable map = new MapWritable();
-		for(byte[] x: ByteArray.splitIterable(buff, (byte) ';', 0, buff.length)) {
-			byte[][] pair = ByteArray.split2(x, (byte) ' '); 
-			map.put(new Text(pair[0]), new Text(pair[1]));
+		for(byte[] x: ByteArray.splitIterable(buff, (byte) ';', 0, buff.length)) {			
+			byte[][] pair = ByteArray.split2(ByteArray.trim(x), (byte) ' '); 
+			System.out.println(new String(pair[0]) +  ":" + new String(pair[1]));
+			map.put(new Text(pair[0]), new Text(ByteArray.unquote(pair[1])));
 		}
 		
 		return map;
@@ -45,7 +47,7 @@ public class GFFParser {
 		
 		ByteWritable strand = new ByteWritable(it.next()[0]);
 		ByteWritable frame = new ByteWritable(it.next()[0]);
-		MapWritable properties = readProperties(it.next());
+		MapWritable properties = readProperties(ByteArray.trim(it.next()));
 		
 		return new GFFRec(seqname,source, feature,start,
 				end, score, strand,

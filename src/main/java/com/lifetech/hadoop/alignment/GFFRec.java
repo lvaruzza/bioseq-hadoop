@@ -85,9 +85,9 @@ public class GFFRec implements Writable {
 		
 		for( Entry<Writable,Writable> pair: properties.entrySet()) {
 			b.append(pair.getKey().toString());
-			b.append(' ');
+			b.append(" \"");
 			b.append(pair.getValue().toString());
-			b.append("; ");
+			b.append("\"; ");
 		}
 		return b.toString();
 	}
@@ -126,5 +126,9 @@ public class GFFRec implements Writable {
 
 	public MapWritable getProperties() {
 		return properties;
+	}
+	
+	public Text getProperty(Text name) {
+		return (Text)properties.get(name);
 	}
 }

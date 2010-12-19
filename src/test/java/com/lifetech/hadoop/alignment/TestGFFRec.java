@@ -42,7 +42,13 @@ public class TestGFFRec {
 		assertEquals('0',(char)gff.getFrame().get());
 		out.println((char)gff.getFrame().get());
 		
+		out.println(gff.getProperty(new Text("gene_id")));
+		assertEquals(new Text("001"),gff.getProperty(new Text("gene_id")));
+
+		out.println(gff.getProperty(new Text("transcript_id")));
+		assertEquals(new Text("001"),gff.getProperty(new Text("transcript_id")));
+		
 		out.println(gff.toString());
-		assertEquals("AB000381\tTwinscan\tCDS\t380\t401\t.\t+\t0\t transcript_id \"001.1\"; gene_id \"001\"; ",gff.toString());
+		assertEquals("AB000381\tTwinscan\tCDS\t380\t401\t.\t+\t0\tgene_id \"001\"; transcript_id \"001.1\"; ",gff.toString());
 	}
 }

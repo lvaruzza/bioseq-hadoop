@@ -37,4 +37,29 @@ public class TestByteArray {
 		testSplitIterable0("1024","[1024]");
 		testSplitIterable0("1024 13","[1024, 13]");
 	}
+	
+	private void testTrim0(String target,String expected) {
+		byte[] b = target.getBytes();
+		byte[] r = ByteArray.trim(b);
+		assertEquals(expected,new String(r));
+	}
+	
+	@Test
+	public void testTrim() {
+		testTrim0("  ABC","ABC");
+		testTrim0("  ABC  ","ABC");
+	}
+	
+	private void testUnquote0(String target,String expected) {
+		byte[] b = target.getBytes();
+		byte[] r = ByteArray.unquote(b);
+		assertEquals(expected,new String(r));
+	}	
+
+	@Test
+	public void testUnquote() {
+		testUnquote0("\"abc\"","abc");
+		testUnquote0("\"\"","");
+		testUnquote0("\"abc","\"abc");
+	}
 }

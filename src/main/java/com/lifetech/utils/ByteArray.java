@@ -6,6 +6,10 @@ import java.util.Iterator;
 
 public class ByteArray {
 	
+	/*
+	 * Split Iterator and Iterable 
+	 */
+	
 	static class SplitIterator implements Iterator<byte[]> {
 		private byte[] b; 
 		private byte c;
@@ -90,7 +94,11 @@ public class ByteArray {
 		return new SplitIterator(b,c,start,len);
 	}
 	
-	public static void printBytes(byte[] x) {
+	/*
+	 *  =======================================================================================
+	 */
+	
+	static public void printBytes(byte[] x) {
 		ByteArray.printBytes(x,x.length);
 	}
 
@@ -98,5 +106,33 @@ public class ByteArray {
 		for(int i=0;i<size;i++) {
 			System.out.printf("\\x%x",x[i]);
 		}
+	}
+	
+	/*
+	 *  =======================================================================================
+	 */
+	
+	static public byte[] trim(byte[] b) {
+		if(b.length == 0) return b;
+		
+		int i=0;
+		int j=b.length-1;
+		for(;i<b.length & (b[i] == (byte)' ');i++) {}
+		for(;j>i & (b[j] == (byte)' ');j--) {  };
+		return Arrays.copyOfRange(b, i, j+1);
+	}
+	
+	static public byte[] unquote(byte[] b) {
+		if (b.length < 2) return b;
+		if (b[0] == (byte) '"' || b[0] == (byte) '\'') {
+			if (b[0] == b[b.length-1]) {
+				return Arrays.copyOfRange(b, 1, b.length-1);
+			} else {
+				return b;
+			}
+		} else {
+			return b;
+		}
+			
 	}
 }
