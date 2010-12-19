@@ -1,0 +1,21 @@
+10/11/07 13:28:46 INFO mapred.JobClient: Counters: 17
+10/11/07 13:28:46 INFO mapred.JobClient:   Job Counters 
+10/11/07 13:28:46 INFO mapred.JobClient:     Launched reduce tasks=1
+10/11/07 13:28:46 INFO mapred.JobClient:     Launched map tasks=62
+10/11/07 13:28:46 INFO mapred.JobClient:     Data-local map tasks=62
+10/11/07 13:28:46 INFO mapred.JobClient:   FileSystemCounters
+10/11/07 13:28:46 INFO mapred.JobClient:     FILE_BYTES_READ=139580208055
+10/11/07 13:28:46 INFO mapred.JobClient:     HDFS_BYTES_READ=4021005963
+10/11/07 13:28:46 INFO mapred.JobClient:     FILE_BYTES_WRITTEN=169057404693
+10/11/07 13:28:46 INFO mapred.JobClient:     HDFS_BYTES_WRITTEN=36965545519
+10/11/07 13:28:46 INFO mapred.JobClient:   Map-Reduce Framework
+10/11/07 13:28:46 INFO mapred.JobClient:     Reduce input groups=989345497
+10/11/07 13:28:46 INFO mapred.JobClient:     Combine output records=3510717854
+10/11/07 13:28:46 INFO mapred.JobClient:     Map input records=28941110
+10/11/07 13:28:46 INFO mapred.JobClient:     Reduce shuffle bytes=29477194718
+10/11/07 13:28:46 INFO mapred.JobClient:     Reduce output records=989345497
+10/11/07 13:28:46 INFO mapred.JobClient:     Spilled Records=8897755371
+10/11/07 13:28:46 INFO mapred.JobClient:     Map output bytes=33455923160
+10/11/07 13:28:46 INFO mapred.JobClient:     Combine input records=3927282052
+10/11/07 13:28:46 INFO mapred.JobClient:     Map output records=1967995480
+10/11/07 13:28:46 INFO mapred.JobClient:     Reduce input records=1551431282

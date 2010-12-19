@@ -1,10 +1,13 @@
-package com.lifetech.utils;
+package com.lifetech.hadoop.alignment;
 
 import static java.lang.System.out;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
+
+import com.lifetech.hadoop.alignment.GFFParser;
+import com.lifetech.hadoop.alignment.GFFRec;
 
 public class TestGFFRec {
 	private GFFParser parser = new GFFParser();

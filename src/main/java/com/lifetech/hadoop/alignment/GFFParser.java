@@ -1,4 +1,4 @@
-package com.lifetech.utils;
+package com.lifetech.hadoop.alignment;
 
 import java.util.Iterator;
 
@@ -7,6 +7,8 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
+
+import com.lifetech.utils.ByteArray;
 
 
 public class GFFParser {

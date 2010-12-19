@@ -1,4 +1,4 @@
-package com.lifetech.utils;
+package com.lifetech.hadoop.alignment;
 
 import java.io.DataInput;
 import java.io.DataOutput;
