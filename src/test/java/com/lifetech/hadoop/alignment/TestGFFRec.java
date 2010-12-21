@@ -46,7 +46,7 @@ public class TestGFFRec {
 		assertEquals(new Text("001"),gff.getProperty(new Text("gene_id")));
 
 		out.println(gff.getProperty(new Text("transcript_id")));
-		assertEquals(new Text("001"),gff.getProperty(new Text("transcript_id")));
+		assertEquals(new Text("001.1"),gff.getProperty(new Text("transcript_id")));
 		
 		out.println(gff.toString());
 		assertEquals("AB000381\tTwinscan\tCDS\t380\t401\t.\t+\t0\tgene_id \"001\"; transcript_id \"001.1\"; ",gff.toString());
