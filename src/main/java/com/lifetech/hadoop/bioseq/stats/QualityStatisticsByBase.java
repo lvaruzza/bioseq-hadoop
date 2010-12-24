@@ -17,7 +17,7 @@ import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
-public class QualityStatistics extends Configured implements Tool {
+public class QualityStatisticsByBase extends Configured implements Tool {
 
 	private String qualFile;
 	private String outputFile;
@@ -103,7 +103,7 @@ public class QualityStatistics extends Configured implements Tool {
 		job.setInputFormatClass(FastaInputFormat.class);
 		FastaInputFormat.setInputPaths(job, qualPath);
 
-		job.setJarByClass(QualityStatistics.class);
+		job.setJarByClass(QualityStatisticsByBase.class);
 
 		job.setMapperClass(QualityMapper.class);
 		job.setMapOutputKeyClass(ByteWritable.class);
@@ -127,7 +127,7 @@ public class QualityStatistics extends Configured implements Tool {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		ToolRunner.run(new QualityStatistics(), args);
+		ToolRunner.run(new QualityStatisticsByBase(), args);
 	}
 
 }
