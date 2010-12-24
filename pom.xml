@@ -54,6 +54,11 @@
 			<artifactId>guava</artifactId>
 			<version>r07</version>
 		</dependency>
+		<dependency>
+			<groupId>org.uncommons.maths</groupId>
+			<artifactId>uncommons-maths</artifactId>
+			<version>1.2.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>
