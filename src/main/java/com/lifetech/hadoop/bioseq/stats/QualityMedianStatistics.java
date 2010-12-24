@@ -77,7 +77,7 @@ public class QualityMedianStatistics extends Configured implements Tool {
 		Path qualPath = new Path(qualFile);
 		Path outputPath = new Path(outputFile);
 
-		Job job = new Job(getConf(), "qualityStatistics");
+		Job job = new Job(getConf(), "qualityMedianStatistics");
 
 		job.setInputFormatClass(FastaInputFormat.class);
 		FastaInputFormat.setInputPaths(job, qualPath);
