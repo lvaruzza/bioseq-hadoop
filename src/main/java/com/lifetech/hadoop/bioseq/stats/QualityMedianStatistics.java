@@ -71,7 +71,7 @@ public class QualityMedianStatistics extends CLIApplication implements Tool {
 		Path qualPath = new Path(this.inputFileName);
 		Path outputPath = new Path(this.outputFileName);
 
-		Job job = new Job(getConf(), "qualityMedianStatistics");
+		Job job = new Job(getConf(), appName());
 
 		maybeRemoevOldOutput(outputPath);
 		
@@ -117,6 +117,12 @@ public class QualityMedianStatistics extends CLIApplication implements Tool {
 	 */
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new QualityMedianStatistics(), args);
+	}
+
+
+	@Override
+	protected String appName() {
+		return "qualityMedianStatistics";
 	}
 
 

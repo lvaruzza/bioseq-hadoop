@@ -91,7 +91,7 @@ public class KmerToHbase extends CLIApplication implements Tool {
 
 	@Override
 	protected Job createJob() throws Exception {
-		Job job = new Job(getConf(), "KmerHbaseImport");
+		Job job = new Job(getConf(), appName());
 
 		//getConf().setBoolean("keep.failed.task.files", true);
 		
@@ -136,5 +136,10 @@ public class KmerToHbase extends CLIApplication implements Tool {
 	public static void main(String[] args) throws Exception {
 		int ret = ToolRunner.run(new KmerToHbase(), args);
 		System.exit(ret);
+	}
+
+	@Override
+	protected String appName() {
+		return "KmerHbaseImport";
 	}
 }

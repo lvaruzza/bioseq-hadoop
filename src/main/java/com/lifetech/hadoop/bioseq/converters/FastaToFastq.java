@@ -119,7 +119,7 @@ public class FastaToFastq extends CLIApplication implements Tool {
 		getConf().setBoolean(FastaInputFormat.addFistQualityValueProperty , addFirstQualValue);
 
 		
-		Job job = new Job(getConf(), "FastaToSequenceFile");
+		Job job = new Job(getConf(), appName());
 		
 		job.setInputFormatClass(FastaInputFormat.class);
 		
@@ -144,5 +144,10 @@ public class FastaToFastq extends CLIApplication implements Tool {
 
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new FastaToFastq(), args);
+	}
+	
+	@Override
+	protected String appName() {
+		return "FastaToFastq";
 	}
 }

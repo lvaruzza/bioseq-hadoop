@@ -157,7 +157,7 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 			log.info("fastaformat.addFistQualityValue set to true");
 		}
 
-		Job job = new Job(getConf(), "FastaToSequenceFile");
+		Job job = new Job(getConf(), appName());
 
 		job.setJarByClass(FastaToSequenceFile.class);
 		job.setInputFormatClass(FastaInputFormat.class);
@@ -196,5 +196,10 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 	public static void main(String[] args) throws Exception {
 		int ret = ToolRunner.run(new FastaToSequenceFile(), args);
 		System.exit(ret);
+	}
+
+	@Override
+	protected String appName() {
+		return "FastaToSequenceFile";
 	}
 }

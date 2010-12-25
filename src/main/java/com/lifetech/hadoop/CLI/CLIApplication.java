@@ -33,7 +33,7 @@ abstract public class CLIApplication extends Configured implements Tool {
 
 	protected void help(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp( "FastaToFastq", options );
+		formatter.printHelp( appName(), options );
 	}
 	
 	protected void parseCmdLine(String[] args) throws ParseException {
@@ -95,6 +95,7 @@ abstract public class CLIApplication extends Configured implements Tool {
 	}
 	
 	abstract protected Job createJob() throws Exception;
+	abstract protected String appName();
 	
 	protected void beforeMR() throws IOException {
 	}

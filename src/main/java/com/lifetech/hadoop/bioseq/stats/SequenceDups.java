@@ -101,7 +101,7 @@ public class SequenceDups extends CLIApplication implements Tool {
 			fs.delete(outputPath, true);
 		}
 
-		Job job = new Job(getConf(), "sequenceDups");
+		Job job = new Job(getConf(), appName());
 
 		job.setJarByClass(SequenceDups.class);
 
@@ -130,5 +130,10 @@ public class SequenceDups extends CLIApplication implements Tool {
 	public static void main(String[] args) throws Exception {
 		int ret = ToolRunner.run(new SequenceDups(), args);
 		System.exit(ret);
+	}
+
+	@Override
+	protected String appName() {
+		return "sequenceDups";
 	}
 }

@@ -2,7 +2,8 @@ package com.lifetech.hadoop.bioseq.stats;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configured;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ByteWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -13,14 +14,12 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import com.lifetech.hadoop.CLI.CLIApplication;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
-public class QualityStatisticsByBase extends Configured implements Tool {
-
-	private String qualFile;
-	private String outputFile;
+public class QualityStatisticsByBase extends CLIApplication implements Tool {
 
 	public static class QualityMapper extends
 			Mapper<LongWritable, BioSeqWritable, ByteWritable, ValueStatsWritable> {
@@ -86,19 +85,14 @@ public class QualityStatisticsByBase extends Configured implements Tool {
 		}
 	}
 
-	private void parseCmdLine(String[] args) {
-		qualFile = args[0];
-		outputFile = args[1];
-
-	}
-
 	@Override
-	public int run(String[] args) throws Exception {
-		parseCmdLine(args);
-		Path qualPath = new Path(qualFile);
-		Path outputPath = new Path(outputFile);
+	protected Job createJob() throws Exception {
+		Path qualPath = new Path(inputFileName);
+		Path outputPath = new Path(outputFileName);
 
-		Job job = new Job(getConf(), "qualityStatistics");
+		this.maybeRemoevOldOutput(outputPath);
+		
+		Job job = new Job(getConf(), appName());
 
 		job.setInputFormatClass(FastaInputFormat.class);
 		FastaInputFormat.setInputPaths(job, qualPath);
@@ -119,7 +113,7 @@ public class QualityStatisticsByBase extends Configured implements Tool {
 		job.setOutputFormatClass(TextOutputFormat.class);
 		FastqOutputFormat.setOutputPath(job, outputPath);
 
-		return job.waitForCompletion(true) ? 0 : 1;
+		return job;
 	}
 
 	/**
@@ -128,6 +122,26 @@ public class QualityStatisticsByBase extends Configured implements Tool {
 	 */
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new QualityStatisticsByBase(), args);
+	}
+
+	@Override
+	protected Options buildOptions() {
+		Options options = new Options();
+		this.addInputOptions(options);
+		this.addOutputOptions(options);
+		return options;
+	}
+
+	@Override
+	protected void checkCmdLine(Options options, CommandLine cmd) {
+		this.checkInputOptionsInCmdLine(options, cmd);
+		this.checkOutputOptionsInCmdLine(options, cmd);
+	}
+
+
+	@Override
+	protected String appName() {		
+		return "qualityStatistics";
 	}
 
 }

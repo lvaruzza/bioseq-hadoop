@@ -99,7 +99,7 @@ public class SequenceDist extends CLIApplication implements Tool {
 			fs.delete(outputPath, true);
 		}
 
-		Job job = new Job(getConf(), "sequenceDist");
+		Job job = new Job(getConf(), appName());
 
 		job.setJarByClass(SequenceDist.class);
 
@@ -128,5 +128,10 @@ public class SequenceDist extends CLIApplication implements Tool {
 	public static void main(String[] args) throws Exception {
 		int ret = ToolRunner.run(new SequenceDist(), args);
 		System.exit(ret);
+	}
+
+	@Override
+	protected String appName() {
+		return "sequenceDist";
 	}
 }

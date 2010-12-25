@@ -172,7 +172,7 @@ public class SpectrumBuilder extends CLIApplication implements Tool {
 		getConf().setBoolean("spectrum.doReverse", doReverse);
 		getConf().setBoolean("spectrum.doComplement", doComplement);
 		
-		Job job = new Job(getConf(), "spectrumBuild");
+		Job job = new Job(getConf(), appName());
 
 		job.setJarByClass(SpectrumBuilder.class);
 
@@ -201,5 +201,11 @@ public class SpectrumBuilder extends CLIApplication implements Tool {
 	public static void main(String[] args) throws Exception {
 		int ret = ToolRunner.run(new SpectrumBuilder(), args);
 		System.exit(ret);
+	}
+
+	@Override
+	protected String appName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

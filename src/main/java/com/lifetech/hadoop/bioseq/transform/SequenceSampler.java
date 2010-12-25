@@ -96,7 +96,7 @@ public class SequenceSampler extends CLIApplication {
 
 		getConf().setFloat("sequenceSampler.percent", percent);
 
-		Job job = new Job(getConf(), "FastaToSequenceFile");
+		Job job = new Job(getConf(), appName());
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		SequenceFileInputFormat.setInputPaths(job, inputPath);
@@ -120,6 +120,10 @@ public class SequenceSampler extends CLIApplication {
 		return job;
 	}
 
+	protected String appName() {
+		return "FastaToSequenceFile";
+	}
+	
 	/**
 	 * @param args
 	 * @throws Exception

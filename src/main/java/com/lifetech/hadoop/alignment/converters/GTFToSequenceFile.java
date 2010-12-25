@@ -91,7 +91,7 @@ public class GTFToSequenceFile extends CLIApplication implements Tool {
 		}
 
 		// Job
-		Job job = new Job(getConf(), "GFFToSequenceFile");
+		Job job = new Job(getConf(), appName());
 		job.setJarByClass(GTFToSequenceFile.class);
 		
 		// Input
@@ -126,5 +126,10 @@ public class GTFToSequenceFile extends CLIApplication implements Tool {
 	public static void main(String[] args) throws Exception {
 		int ret = ToolRunner.run(new GTFToSequenceFile(), args);
 		System.exit(ret);
+	}
+
+	@Override
+	protected String appName() {
+		return "GFFToSequenceFile";
 	}
 }
