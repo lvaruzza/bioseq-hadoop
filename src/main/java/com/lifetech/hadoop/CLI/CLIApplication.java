@@ -9,6 +9,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 import org.apache.log4j.Logger;
@@ -81,6 +83,15 @@ abstract public class CLIApplication extends Configured implements Tool {
 		} else {
 			removeOldOutput=false;
 		}				
+	}
+
+	protected void maybeRemoevOldOutput(Path outputPath) throws IOException {
+		if (removeOldOutput) {
+			FileSystem fs = outputPath.getFileSystem(getConf());		
+			if (fs.exists(outputPath)) {
+				fs.delete(outputPath, true);
+			}
+		}		
 	}
 	
 	abstract protected Job createJob() throws Exception;

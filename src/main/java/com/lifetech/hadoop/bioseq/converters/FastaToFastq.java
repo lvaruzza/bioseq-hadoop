@@ -116,15 +116,6 @@ public class FastaToFastq extends CLIApplication implements Tool {
 		Path qualPath = new Path(qualFileName);
 		Path outputPath = new Path(outputFileName);
 		
-		if (removeOldOutput) {
-			FileSystem fs = outputPath.getFileSystem(getConf());		
-			if (fs.exists(outputPath)) {
-				log.info(String.format("Removing '%s'", outputPath));
-				fs.delete(outputPath, true);
-			}
-		}
-
-
 		getConf().setBoolean(FastaInputFormat.addFistQualityValueProperty , addFirstQualValue);
 
 		

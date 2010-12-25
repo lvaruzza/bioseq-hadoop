@@ -11,4 +11,4 @@ if test ! -f $HADOOP; then
     fi
 fi
 
-$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.stats.QualityMedianStatistics $*
+$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.stats.QualityMedianStatistics -libjars $BASE/target/lib/uncommons-maths-1.2.2.jar $*

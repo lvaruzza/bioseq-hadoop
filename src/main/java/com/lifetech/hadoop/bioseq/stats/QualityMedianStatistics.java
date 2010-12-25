@@ -2,7 +2,9 @@ package com.lifetech.hadoop.bioseq.stats;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configured;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ByteWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -14,14 +16,12 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.uncommons.maths.statistics.DataSet;
 
+import com.lifetech.hadoop.CLI.CLIApplication;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
-public class QualityMedianStatistics extends Configured implements Tool {
-
-	private String qualFile;
-	private String outputFile;
+public class QualityMedianStatistics extends CLIApplication implements Tool {
 
 	public static class QualityMapper extends
 			Mapper<LongWritable, BioSeqWritable, ByteWritable, LongWritable> {
@@ -65,20 +65,16 @@ public class QualityMedianStatistics extends Configured implements Tool {
 		}
 	}
 
-	private void parseCmdLine(String[] args) {
-		qualFile = args[0];
-		outputFile = args[1];
-
-	}
 
 	@Override
-	public int run(String[] args) throws Exception {
-		parseCmdLine(args);
-		Path qualPath = new Path(qualFile);
-		Path outputPath = new Path(outputFile);
+	protected Job createJob() throws Exception {
+		Path qualPath = new Path(this.inputFileName);
+		Path outputPath = new Path(this.outputFileName);
 
 		Job job = new Job(getConf(), "qualityMedianStatistics");
 
+		maybeRemoevOldOutput(outputPath);
+		
 		job.setInputFormatClass(FastaInputFormat.class);
 		FastaInputFormat.setInputPaths(job, qualPath);
 
@@ -86,19 +82,34 @@ public class QualityMedianStatistics extends Configured implements Tool {
 
 		job.setMapperClass(QualityMapper.class);
 		job.setMapOutputKeyClass(ByteWritable.class);
-		job.setMapOutputValueClass(ValueStatsWritable.class);
+		job.setMapOutputValueClass(LongWritable.class);
 		
 		job.setCombinerClass(StatisticsReducer.class);
 		job.setReducerClass(StatisticsReducer.class);
 
 		job.setOutputKeyClass(ByteWritable.class);
-		job.setOutputValueClass(ValueStatsWritable.class);
+		job.setOutputValueClass(LongWritable.class);
 
 		job.setOutputFormatClass(TextOutputFormat.class);
 		FastqOutputFormat.setOutputPath(job, outputPath);
-
-		return job.waitForCompletion(true) ? 0 : 1;
+		return job;
 	}
+
+
+	@Override
+	protected void checkCmdLine(Options options, CommandLine cmd) {
+		checkInputOptionsInCmdLine(options, cmd);
+		checkOutputOptionsInCmdLine(options, cmd);
+	}
+
+	@Override
+	protected Options buildOptions() {
+		Options options = new Options();
+		addInputOptions(options);
+		addOutputOptions(options);
+		return options;
+	}
+
 
 	/**
 	 * @param args
@@ -107,5 +118,6 @@ public class QualityMedianStatistics extends Configured implements Tool {
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new QualityMedianStatistics(), args);
 	}
+
 
 }
