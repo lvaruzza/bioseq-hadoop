@@ -169,14 +169,29 @@ abstract public class CLIApplication extends Configured implements Tool {
 	protected void beforeMR() throws IOException {
 	}
 
-	@Override
-	public int run(String[] args) throws Exception {
-		parseCmdLine(args);
-
+	
+	private int createAndRunJob() throws Exception {
 		beforeMR();
 		Job job = createJob();
 		
-		return job.waitForCompletion(true) ? 0 : 1;
+		return job.waitForCompletion(true) ? 0 : 1;		
 	}
 	
+	@Override
+	public int run(String[] args) throws Exception {
+		parseCmdLine(args);
+		
+		return createAndRunJob();
+	}
+	
+	public int filter(String inputFileName,IOFormat inputFormat,
+					  String outputFileName,IOFormat outputFormat) throws Exception {
+		
+		this.inputFileName = inputFileName;
+		this.outputFileName = outputFileName;
+		this.inputFormat = inputFormat;
+		this.outputFormat = outputFormat;
+
+		return createAndRunJob();
+	}
 }
