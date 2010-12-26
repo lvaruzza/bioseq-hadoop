@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
@@ -14,6 +16,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 import org.apache.log4j.Logger;
+
+import com.sun.org.apache.commons.logging.Log;
 
 abstract public class CLIApplication extends Configured implements Tool {
     private static Logger log = Logger.getLogger(CLIApplication.class);
@@ -66,6 +70,43 @@ abstract public class CLIApplication extends Configured implements Tool {
 			help(options);
 			exit(-1);
 		}		
+	}
+	
+	protected void addFileFormatOptions(Options options) {
+		Option option = OptionBuilder.withArgName("input-format")
+								     .hasArg()
+								     .withLongOpt("input-format")
+								     .withDescription("Input Format")
+								     .create("if");
+		options.addOption(option);
+	}
+	
+	public enum InputFormat {
+		FASTA,
+		SEQUENCEFILE;
+		
+		public static void listValidFormats(Logger log) {
+			log.info("Valid Formats:\n" + 
+					"\tfasta\tFasta Format\n"+
+					"\tsequence\tSequence Input Format\n" );
+		}
+	};
+	
+	protected InputFormat inputFormat = InputFormat.FASTA;
+	
+	protected void checkFileFormatInCmdLine(Options options, CommandLine cmd) {
+		if(cmd.hasOption("if")) {
+			String name = cmd.getOptionValue("if").toLowerCase();
+			if (name.equals("fasta")) {
+				inputFormat = InputFormat.FASTA;
+			} else if (name.equals("sequence")) {
+				inputFormat = InputFormat.SEQUENCEFILE;
+			} else {
+				log.error(String.format("Invalid input format '%s'",name));
+				InputFormat.listValidFormats(log);
+				this.exit(-2);
+			}
+		}
 	}
 	
 	protected void checkOutputOptionsInCmdLine(Options options, CommandLine cmd) {

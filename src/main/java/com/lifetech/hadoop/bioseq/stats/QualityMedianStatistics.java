@@ -4,13 +4,14 @@ import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ByteWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -24,12 +25,12 @@ import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 public class QualityMedianStatistics extends CLIApplication implements Tool {
 
 	public static class QualityMapper extends
-			Mapper<LongWritable, BioSeqWritable, ByteWritable, LongWritable> {
+			Mapper<Writable, BioSeqWritable, ByteWritable, LongWritable> {
 
 		private static LongWritable ONE = new LongWritable(1);
 		private ByteWritable medianQual = new ByteWritable();
 		
-		public void map(LongWritable key, BioSeqWritable value, Context context)
+		public void map(Writable key, BioSeqWritable value, Context context)
 				throws IOException, InterruptedException {
 
 			byte[] quals = value.getQuality().getBytes();
@@ -65,19 +66,26 @@ public class QualityMedianStatistics extends CLIApplication implements Tool {
 		}
 	}
 
-
+	
 	@Override
 	protected Job createJob() throws Exception {
-		Path qualPath = new Path(this.inputFileName);
+		Path inputPath = new Path(this.inputFileName);
 		Path outputPath = new Path(this.outputFileName);
 
 		Job job = new Job(getConf(), appName());
 
 		maybeRemoevOldOutput(outputPath);
 		
-		job.setInputFormatClass(FastaInputFormat.class);
-		FastaInputFormat.setInputPaths(job, qualPath);
-
+		if (inputFormat == InputFormat.FASTA) {
+			job.setInputFormatClass(FastaInputFormat.class);
+			FastaInputFormat.setInputPaths(job, inputPath);
+		} else if (inputFormat == InputFormat.SEQUENCEFILE) {
+			job.setInputFormatClass(SequenceFileInputFormat.class);
+			SequenceFileInputFormat.setInputPaths(job, inputPath);
+		} else {
+			throw new RuntimeException("Invalid input format '" + this.inputFormat + "'");
+		}
+		
 		job.setJarByClass(QualityMedianStatistics.class);
 
 		job.setMapperClass(QualityMapper.class);
@@ -100,13 +108,17 @@ public class QualityMedianStatistics extends CLIApplication implements Tool {
 	protected void checkCmdLine(Options options, CommandLine cmd) {
 		checkInputOptionsInCmdLine(options, cmd);
 		checkOutputOptionsInCmdLine(options, cmd);
+		checkFileFormatInCmdLine(options, cmd);
 	}
 
 	@Override
 	protected Options buildOptions() {
 		Options options = new Options();
+
 		addInputOptions(options);
 		addOutputOptions(options);
+		addFileFormatOptions(options);
+		
 		return options;
 	}
 
