@@ -72,7 +72,7 @@ abstract public class CLIApplication extends Configured implements Tool {
 		}		
 	}
 	
-	protected void addFileFormatOptions(Options options) {
+	protected void addInputFormatOptions(Options options) {
 		Option option = OptionBuilder.withArgName("input-format")
 								     .hasArg()
 								     .withLongOpt("input-format")
@@ -80,32 +80,60 @@ abstract public class CLIApplication extends Configured implements Tool {
 								     .create("if");
 		options.addOption(option);
 	}
+
+	protected void addOutputFormatOptions(Options options) {
+		Option option = OptionBuilder.withArgName("output-format")
+								     .hasArg()
+								     .withLongOpt("output-format")
+								     .withDescription("Output Format")
+								     .create("of");
+		options.addOption(option);
+	}
 	
-	public enum InputFormat {
+	public enum IOFormat {
 		FASTA,
-		SEQUENCEFILE;
+		SEQUENCE_FILE,
+		TEXT,
+		INVALID_FORMAT;
 		
 		public static void listValidFormats(Logger log) {
 			log.info("Valid Formats:\n" + 
 					"\tfasta\tFasta Format\n"+
-					"\tsequence\tSequence Input Format\n" );
+					"\tsequence\tSequence IO Format\n"+
+					"\ttext\ttext Format\n");
+		}
+		
+		public static IOFormat parseIOFormat(String name0) {
+			String name = name0.toLowerCase();
+			if (name.equals("fasta")) {
+					return IOFormat.FASTA;
+			} else if (name.equals("sequence")) {
+					return IOFormat.SEQUENCE_FILE;
+			} else {
+				log.error(String.format("Invalid input format '%s'",name));
+				IOFormat.listValidFormats(log);
+				return IOFormat.INVALID_FORMAT;
+			}
 		}
 	};
 	
-	protected InputFormat inputFormat = InputFormat.FASTA;
-	
-	protected void checkFileFormatInCmdLine(Options options, CommandLine cmd) {
+	protected IOFormat inputFormat = IOFormat.SEQUENCE_FILE;
+	protected IOFormat outputFormat = IOFormat.SEQUENCE_FILE;
+
+
+	protected void checkInputFormatInCmdLine(Options options, CommandLine cmd) {
 		if(cmd.hasOption("if")) {
-			String name = cmd.getOptionValue("if").toLowerCase();
-			if (name.equals("fasta")) {
-				inputFormat = InputFormat.FASTA;
-			} else if (name.equals("sequence")) {
-				inputFormat = InputFormat.SEQUENCEFILE;
-			} else {
-				log.error(String.format("Invalid input format '%s'",name));
-				InputFormat.listValidFormats(log);
+			inputFormat = IOFormat.parseIOFormat(cmd.getOptionValue("if"));
+			if (inputFormat == IOFormat.INVALID_FORMAT)
 				this.exit(-2);
-			}
+		}
+	}
+
+	protected void checkOutputFormatInCmdLine(Options options, CommandLine cmd) {
+		if(cmd.hasOption("of")) {
+			outputFormat = IOFormat.parseIOFormat(cmd.getOptionValue("of"));
+			if (outputFormat == IOFormat.INVALID_FORMAT)
+				this.exit(-2);
 		}
 	}
 	
