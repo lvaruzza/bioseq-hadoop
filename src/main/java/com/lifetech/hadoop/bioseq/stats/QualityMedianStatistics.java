@@ -1,12 +1,20 @@
 package com.lifetech.hadoop.bioseq.stats;
 
 import java.io.IOException;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.ByteWritable;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -16,6 +24,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
 import org.uncommons.maths.statistics.DataSet;
 
 import com.lifetech.hadoop.CLI.CLIApplication;
@@ -24,6 +33,7 @@ import com.lifetech.hadoop.mapreduce.input.FastaInputFormat;
 import com.lifetech.hadoop.mapreduce.output.FastqOutputFormat;
 
 public class QualityMedianStatistics extends CLIApplication implements Tool {
+    private static Logger log = Logger.getLogger(QualityMedianStatistics.class);
 
 	public static class QualityMapper extends
 			Mapper<Writable, BioSeqWritable, ByteWritable, LongWritable> {
@@ -46,6 +56,7 @@ public class QualityMedianStatistics extends CLIApplication implements Tool {
 			context.write(medianQual, ONE);
 		}
 	}
+	
 	public static class StatisticsReducer
 			extends
 			Reducer<ByteWritable, LongWritable, ByteWritable, LongWritable> {
@@ -66,6 +77,63 @@ public class QualityMedianStatistics extends CLIApplication implements Tool {
 		}
 	}
 
+	private long loadFile(SortedMap<Integer,Long> map,Path file,FileSystem fs) throws IOException {
+		SequenceFile.Reader reader = null;
+		long sum = 0;
+		try {	
+			log.info("qualityCutoff: Reading file " + file);
+			reader = new SequenceFile.Reader(fs, file, getConf());
+			ByteWritable key = new ByteWritable();
+			LongWritable value = new LongWritable();
+			
+			while (reader.next(key, value)) {
+				map.put(- key.get(), value.get());
+				sum += value.get();
+			}
+		} finally {
+			IOUtils.closeStream(reader);
+		}
+		return sum;
+	}
+	
+	public int qualityCutoff(Path input,float quantile) throws IOException {
+		int cutoff = 20;
+		
+		FileSystem fs = input.getFileSystem(getConf());		
+		TreeMap<Integer,Long> map = new TreeMap<Integer,Long>();
+		FileStatus[] files = fs.globStatus(input, new PathFilter() {
+			@Override
+			public boolean accept(Path path) {
+				System.out.println(path.getName());
+				return path.getName().startsWith("part-r");
+			}
+		});
+		
+		long sum = 0;
+		
+		for (FileStatus file : files) {
+			if (!file.isDir()) {
+				sum += loadFile(map,file.getPath(),fs);
+			}
+		}
+		
+		long valueCutoff = (int)(quantile*sum);
+		long partialSum = 0;
+		
+		for(Entry<Integer,Long> entry : map.entrySet()) {
+			partialSum += entry.getValue();
+			System.out.println(String.format("%d\t%d\t%.2f",
+					-entry.getKey(),entry.getValue(),partialSum*100.0/sum));
+			
+			if (partialSum >= valueCutoff) {
+				cutoff = - entry.getKey();
+				break;
+			}
+		}
+		
+		return cutoff;
+	}
+	
 	@Override
 	protected Job createJob() throws Exception {
 		Path inputPath = new Path(this.inputFileName);

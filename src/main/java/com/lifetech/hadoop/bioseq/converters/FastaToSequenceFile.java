@@ -51,8 +51,9 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 					qual.set(val.getQuality());
 				else
 					throw new RuntimeException(String.format(
-							"Invalid SeqType '%s' in sequence '%s'", val
-									.getType().name(), val.getId().toString()));
+							"Invalid SeqType '%s' in sequence '%s'", 
+								val.getType().name(), 
+								val.getId().toString()));
 			}
 
 			context.write(key, new BioSeqWritable(key, seq, qual));

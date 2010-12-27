@@ -185,13 +185,14 @@ abstract public class CLIApplication extends Configured implements Tool {
 	}
 	
 	public int filter(String inputFileName,IOFormat inputFormat,
-					  String outputFileName,IOFormat outputFormat) throws Exception {
+					  String outputFileName,IOFormat outputFormat,boolean removeOldOutput) throws Exception {
 		
 		this.inputFileName = inputFileName;
 		this.outputFileName = outputFileName;
 		this.inputFormat = inputFormat;
 		this.outputFormat = outputFormat;
-
+		this.removeOldOutput = removeOldOutput;
+		
 		return createAndRunJob();
 	}
 }

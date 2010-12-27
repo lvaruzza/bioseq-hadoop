@@ -62,7 +62,7 @@ public class SequenceSampler extends CLIApplication {
 		addInputOptions(options);
 
 		options.addOption("p", "percentAccept", true,
-				"percentage of reads to be accespted");
+				"percentage of reads to be accepted");
 		return options;
 	}
 
