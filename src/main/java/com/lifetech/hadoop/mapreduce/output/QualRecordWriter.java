@@ -32,13 +32,9 @@ public class QualRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 		byte[] quals = value.getQuality().getBytes();
 		int len = value.getQuality().getLength();
 		for(int i = 0;i< len -1;i++) {
-			out.writeUTF(Byte.toString(quals[i]));
-			out.write(' ');
+			out.writeUTF(String.format("%d ",quals[i]));
 		}
-		out.writeUTF(Byte.toString(quals[len-1]));
-		
-		out.write(value.getSequence().getBytes(),0,value.getSequence().getLength());
-		out.writeByte('\n');
+		out.writeUTF(String.format("%d\n",quals[len-1]));
 	}
 
 }
