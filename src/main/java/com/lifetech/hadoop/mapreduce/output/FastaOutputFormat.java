@@ -18,6 +18,16 @@ import org.apache.hadoop.util.ReflectionUtils;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 
 public class FastaOutputFormat extends FileOutputFormat<NullWritable, BioSeqWritable> {
+	private static boolean writeSequence = true;
+	
+	public static void writeSequence() {
+		writeSequence = true;
+	}
+	
+	public static void writeQuality() {
+		writeSequence = false;
+	}
+	
 	@Override
 	public RecordWriter<NullWritable, BioSeqWritable> getRecordWriter(
 			TaskAttemptContext job) throws IOException, InterruptedException {
@@ -38,10 +48,18 @@ public class FastaOutputFormat extends FileOutputFormat<NullWritable, BioSeqWrit
 		FileSystem fs = file.getFileSystem(conf);
 		if (!isCompressed) {
 			FSDataOutputStream fileOut = fs.create(file, false);
-			return new FastaRecordWriter(fileOut);
+			if (writeSequence) {
+				return new FastaRecordWriter(fileOut);
+			} else {
+				return new QualRecordWriter(fileOut);				
+			}
 		} else {
 			FSDataOutputStream fileOut = fs.create(file, false);
-			return new FastaRecordWriter(new DataOutputStream(codec.createOutputStream(fileOut)));
+			if (writeSequence) {
+				return new FastaRecordWriter(new DataOutputStream(codec.createOutputStream(fileOut)));
+			} else {
+				return new QualRecordWriter(new DataOutputStream(codec.createOutputStream(fileOut)));				
+			}
 		}
 	}
 }
