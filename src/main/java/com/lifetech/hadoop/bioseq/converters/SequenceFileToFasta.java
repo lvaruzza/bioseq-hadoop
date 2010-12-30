@@ -10,13 +10,13 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
 import com.lifetech.hadoop.CLI.CLIApplication;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 import com.lifetech.hadoop.mapreduce.output.FastaOutputFormat;
+import com.lifetech.hadoop.mapreduce.output.QualOutputFormat;
 import com.lifetech.utils.PathUtils;
 
 public class SequenceFileToFasta extends CLIApplication {
@@ -78,13 +78,12 @@ public class SequenceFileToFasta extends CLIApplication {
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(BioSeqWritable.class);
 
-		job.setOutputFormatClass(FastaOutputFormat.class);
-		FastaOutputFormat.setOutputPath(job, outputPath);	
-		
 		if (writeSequence) {
-			FastaOutputFormat.writeSequence();
+			job.setOutputFormatClass(FastaOutputFormat.class);
+			FastaOutputFormat.setOutputPath(job, outputPath);	
 		} else {
-			FastaOutputFormat.writeQuality();			
+			job.setOutputFormatClass(QualOutputFormat.class);
+			QualOutputFormat.setOutputPath(job, outputPath);	
 		}
 		return job;
 	}
