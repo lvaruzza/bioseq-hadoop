@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -15,9 +14,7 @@ import org.apache.log4j.Logger;
 
 import com.lifetech.hadoop.CLI.CLIApplication;
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
-import com.lifetech.hadoop.mapreduce.output.FastaOutputFormat;
-import com.lifetech.hadoop.mapreduce.output.QualOutputFormat;
-import com.lifetech.utils.PathUtils;
+import com.lifetech.hadoop.mapreduce.output.FastaQualOutputFormat;
 
 public class SequenceFileToFasta extends CLIApplication {
 	private static Logger log = Logger.getLogger(SequenceFileToFasta.class);
@@ -47,21 +44,11 @@ public class SequenceFileToFasta extends CLIApplication {
 		this.checkOutputOptionsInCmdLine(options, cmd);
 	}
 
-	@Override
 	protected Job createJob() throws Exception {
-		return createJob(new Path(outputFileName),true);
-	}
-	
-	protected Job createJob(Path outputPath,boolean writeSequence) throws Exception {
 		Path inputPath = new Path(inputFileName);
-
-		if (removeOldOutput) {
-			FileSystem fs = outputPath.getFileSystem(getConf());
-
-			if (fs.exists(outputPath)) {
-				fs.delete(outputPath, true);
-			}
-		}
+		Path outputPath = new Path(outputFileName);
+		
+		this.maybeRemoevOldOutput(outputPath);
 
 		Job job = new Job(getConf(), appName());
 		job.setInputFormatClass(SequenceFileInputFormat.class);
@@ -77,37 +64,11 @@ public class SequenceFileToFasta extends CLIApplication {
 		
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(BioSeqWritable.class);
-
-		if (writeSequence) {
-			job.setOutputFormatClass(FastaOutputFormat.class);
-			FastaOutputFormat.setOutputPath(job, outputPath);	
-		} else {
-			job.setOutputFormatClass(QualOutputFormat.class);
-			QualOutputFormat.setOutputPath(job, outputPath);	
-		}
+		job.setOutputFormatClass(FastaQualOutputFormat.class);
+		FastaQualOutputFormat.setOutputPath(job, outputPath);	
 		return job;
 	}
 
-	@Override
-	public int run(String[] args) throws Exception {
-		parseCmdLine(args);
-		
-		Path outputPath = new Path(outputFileName);
-
-		Job jobFasta = createJob(outputPath,true);
-		
-		boolean ret1 = jobFasta.waitForCompletion(true);
-
-		Path qualPath = PathUtils.changePathExtension(outputPath, ".qual");
-		log.info("Qual file name = " + qualPath);
-
-		Job jobQual = createJob(qualPath,false);
-
-		boolean ret2 = jobQual.waitForCompletion(true);
-
-		return ret1 && ret2 ? 0 : 1;
-	}
-	
 	@Override
 	protected String appName() {
 		return "sequenceToFasta";

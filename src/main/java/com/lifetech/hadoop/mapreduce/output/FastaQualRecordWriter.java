@@ -8,17 +8,20 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import com.lifetech.hadoop.bioseq.BioSeqWritable;
 
-public class QualRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
+public class FastaQualRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
+	private DataOutputStream fasta;
 	private DataOutputStream qual;
 	
-	public QualRecordWriter(DataOutputStream out) {
-		this.qual = out;
+	public FastaQualRecordWriter(DataOutputStream fasta,DataOutputStream qual) {
+		this.fasta = fasta;
+		this.qual = qual;
 	}
 	
 
 	@Override
 	public void close(TaskAttemptContext context) throws IOException,
 			InterruptedException {
+		fasta.close();
 		qual.close();
 	}
 
@@ -26,6 +29,14 @@ public class QualRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 	public void write(K key, BioSeqWritable value) throws IOException, InterruptedException {
 		if(value == null) return;
 
+		//  Write Fasta
+		fasta.writeByte('>');
+		fasta.write(value.getId().getBytes(),0,value.getId().getLength());
+		fasta.writeByte('\n');
+		fasta.write(value.getSequence().getBytes(),0,value.getSequence().getLength());
+		fasta.writeByte('\n');
+		
+		//  Write Qual
 		qual.writeByte('>');
 		qual.write(value.getId().getBytes(),0,value.getId().getLength());
 		qual.writeByte('\n');
@@ -35,6 +46,7 @@ public class QualRecordWriter<K> extends RecordWriter<K,BioSeqWritable> {
 			qual.writeBytes(String.format("%d ",quals[i]));
 		}
 		qual.writeBytes(String.format("%d\n",quals[len-1]));
+		
 	}
 
 }

@@ -11,4 +11,4 @@ if test ! -f $HADOOP; then
     fi
 fi
 
-$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.converters.SequenceFileToFasta $*
+$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.converters.SequenceFileToFasta -libjars target/lib/commons-io-1.4.jar $*
