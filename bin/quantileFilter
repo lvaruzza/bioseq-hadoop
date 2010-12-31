@@ -1,0 +1,20 @@
+BIN=`dirname $0`
+
+source $BIN/common.sh
+
+FASTA=`realpath $1`
+QUAL=`realpath $2`
+OUTPUT=$3
+QUANTILE=$4
+
+BASENAME=`basename $FASTA .fasta`
+SEQFILE=$BASENAME-seq
+FILTERED=$OUTPUT-$QUANTILE-seq
+
+echo $BIN/fasta2seqfile -f file://$FASTA -q file://$QUAL -o $SEQFILE
+echo $BIN/hQuantileFilter -i $SEQFILE -o $FILTERED -p $QUANTILE
+echo $BIN/seqfile2fasta -i $FILTERED -o $FILTERED-fasta
+echo "$HADOOP dfs -cat $FILTERED-fasta/fasta* > $OUTPUT.fasta"
+echo "$HADOOP dfs -cat $FILTERED-fasta/qual* > $OUTPUT.qual"
+
+ 
