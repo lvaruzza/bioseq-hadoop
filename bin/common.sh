@@ -1,6 +1,5 @@
-#!/bin/bash
 VERSION=0.0.1
-BIN=`dirname $0`
+
 BASE=$BIN/../
 HADOOP=$HADOOP_HOME/bin/hadoop
 if test ! -f $HADOOP; then
@@ -10,5 +9,3 @@ if test ! -f $HADOOP; then
 	exit
     fi
 fi
-
-$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.transform.QuantileFilter -libjars $BASE/target/lib/uncommons-maths-1.2.2.jar $*

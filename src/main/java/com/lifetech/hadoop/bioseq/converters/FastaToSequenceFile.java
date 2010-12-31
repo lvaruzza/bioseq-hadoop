@@ -81,7 +81,8 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 	private String qualFileName = null;
 	private int constantQualValue;
 	private boolean useQualFile;
-
+	private boolean addFirstBase;
+	
 	protected Options buildOptions() {
 		// create Options object
 		Options options = new Options();
@@ -90,6 +91,8 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 		options.addOption("f", "fasta", true, "Fasta/csfasta input file");
 		options.addOption("q", "qual", true, "Qual file");
 		options.addOption("Q", "qual-value", true, "Contant qual value");
+
+		options.addOption("fq", "addFirstQual", true, "add quality value for the first base");
 
 		addOutputOptions(options);
 
@@ -128,6 +131,13 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 
 			}
 		}
+		
+		if (cmd.hasOption("fq")) {
+			addFirstBase = true;
+		} else {
+			addFirstBase = false;
+		}
+		
 		this.checkOutputOptionsInCmdLine(options, cmd);
 	}
 
@@ -149,14 +159,14 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 			}
 		}
 
-		if (fastaPath.getName().endsWith(".csfasta")) {
-			log.info("Color Space Fasta");
+		if (addFirstBase) {
 			getConf().setBoolean("fastaformat.addFistQualityValue", true);
-			if (!useQualFile) {
-				getConf().setInt("fastaToSequenceFile.qualValue", constantQualValue);
-			}
-			log.info("fastaformat.addFistQualityValue set to true");
 		}
+		
+		if (!useQualFile) {
+			getConf().setInt("fastaToSequenceFile.qualValue", constantQualValue);
+		}
+		log.info("fastaformat.addFistQualityValue set to true");
 
 		Job job = new Job(getConf(), appName());
 
