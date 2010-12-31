@@ -161,6 +161,8 @@ public class FastaToSequenceFile extends CLIApplication implements Tool {
 
 		if (addFirstBase) {
 			getConf().setBoolean("fastaformat.addFistQualityValue", true);
+		} else {
+			getConf().setBoolean("fastaformat.addFistQualityValue", false);			
 		}
 		
 		if (!useQualFile) {
