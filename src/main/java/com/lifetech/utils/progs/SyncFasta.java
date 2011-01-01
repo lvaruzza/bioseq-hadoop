@@ -38,7 +38,7 @@ public class SyncFasta {
 	}
 
 	public static class SOLiDExtractor implements NameExtractor {
-		private static Pattern regexp = Pattern.compile(">(\\d+_\\d+_\\d+)_[FR][35]");
+		private static Pattern regexp = Pattern.compile("^>(\\d+_\\d+_\\d+).*");
 		@Override
 		public String extract(String line) {
 			Matcher matcher = regexp.matcher(line);
