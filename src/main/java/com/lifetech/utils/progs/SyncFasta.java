@@ -5,6 +5,8 @@ import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -18,14 +20,32 @@ import org.apache.log4j.Logger;
 public class SyncFasta {
 	private static Logger log = Logger.getLogger(SyncFasta.class);
 
-	private Options buildOptions() {
-		Options options = new Options();
-		options.addOption("i","input", true, "Input file");
-		options.addOption("o","output", true, "Output file");
-		options.addOption("r","reference", true, "Reference file");
-
-		return options;
+	public static interface NameExtractor {
+		public String extract(String line);
 	}
+	
+	public static class IdExtractor implements NameExtractor {
+		@Override
+		public String extract(String line) {
+			return line;
+		}		
+	}
+
+	public static class SOLiDExtractor implements NameExtractor {
+		private static Pattern regexp = Pattern.compile(">(\\d+_\\d+_\\d+)_[FR][35]");
+		@Override
+		public String extract(String line) {
+			Matcher matcher = regexp.matcher(line);
+			if (matcher.matches()) {
+				return matcher.group(1);
+			} else {
+				throw new RuntimeException("Invalid header '" + line + "'");
+			}
+		}		
+	}
+	
+	private NameExtractor extractor = new IdExtractor();
+	
 	
 	int recordsCount = 0;
 	
@@ -44,7 +64,7 @@ public class SyncFasta {
 		while(it.hasNext()) {
 			String line = it.nextLine();
 			if (line.startsWith(">")) {
-				insertStmt.setString(1, line);
+				insertStmt.setString(1, extractor.extract(line));
 				insertStmt.execute();
 				recordsCount++;
 				if (recordsCount % 1000 == 0) {
@@ -72,7 +92,7 @@ public class SyncFasta {
 		while(it.hasNext()) {
 			String line = it.nextLine();
 			if (line.startsWith(">")) {
-				queryStmt.setString(1, line);
+				queryStmt.setString(1, extractor.extract(line));
 				queryStmt.execute();
 				printLine = queryStmt.getResultSet().next();
 				if (syncCount == recordsCount) break;
@@ -135,15 +155,25 @@ public class SyncFasta {
 		return 0;
 	}
 
+	private Options buildOptions() {
+		Options options = new Options();
+		options.addOption("i","input", true, "Input file");
+		options.addOption("o","output", true, "Output file");
+		options.addOption("r","reference", true, "Reference file");
+		options.addOption("n","nameScheme", true, "naming scheme of sequences (solid or all)");
+
+		return options;
+	}
+	
 	public int run(String[] args) throws Exception {		
 		Options options = buildOptions();
 		
 		CommandLineParser parser = new PosixParser();
 		CommandLine cmd = parser.parse( options, args);
 
-		String inputFilename = "";		
-		String outputFilename = "";
-		String refFilename = "";
+		String inputFilename = null;		
+		String outputFilename = null;
+		String refFilename = null;
 
 		if (cmd.hasOption("i")) {
 			inputFilename = cmd.getOptionValue("i");
@@ -162,7 +192,14 @@ public class SyncFasta {
 		} else {
 			help(options);
 		}
-		
+
+		if (cmd.hasOption("n")) {
+			String scheme = cmd.getOptionValue("n");
+			if (scheme.equals("solid")) {
+				extractor = new SOLiDExtractor();
+			}
+		}
+
 		return execute(refFilename,inputFilename,outputFilename);
 	}
 	
