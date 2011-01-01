@@ -5,6 +5,9 @@ import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,8 +53,19 @@ public class SyncFasta {
 	private NameExtractor extractor = new IdExtractor();
 	
 	
-	int recordsCount = 0;
+	private int recordsCount = 0;
+	private DateFormat elapsedFormat = new SimpleDateFormat("kk:mm:ss.SSSS");
 	
+	private Connection getConn(String filename) throws Exception {
+		Class.forName("org.h2.Driver");
+		String connStr = String.format("jdbc:h2:%s",filename);
+		log.info("Connecting to " + connStr);
+		Connection conn = DriverManager.getConnection(connStr, "sa", "");
+		
+		return conn;
+	}
+
+
 	public void populateDB(File input,Connection conn) throws Exception {
 		PreparedStatement createTable = conn.prepareStatement("create table seqs (name varchar(1024) primary key)");
 		
@@ -63,6 +77,7 @@ public class SyncFasta {
 		LineIterator it = FileUtils.lineIterator(input, "ASCII");
 	
 		recordsCount = 0;
+		long startTime = System.currentTimeMillis();
 		
 		while(it.hasNext()) {
 			String line = it.nextLine();
@@ -75,7 +90,12 @@ public class SyncFasta {
 					System.out.flush();
 				}
 				if (recordsCount % BREAK2 == 0) {
-					System.out.printf(" %5dk\n",recordsCount/1000);
+					long curTime = System.currentTimeMillis() - startTime;
+					
+					System.out.printf(" %5dk. Elapsed %s (%.2f seqs/s)\n",
+							recordsCount/1000,
+							elapsedFormat.format(new Date(curTime)),
+							recordsCount*1000.0/curTime);
 					System.out.flush();					
 				}
 			}
@@ -92,6 +112,8 @@ public class SyncFasta {
 		boolean printLine = false;
 		int syncCount = 0;
 		
+		long startTime = System.currentTimeMillis();
+
 		while(it.hasNext()) {
 			String line = it.nextLine();
 			if (line.startsWith(">")) {
@@ -105,7 +127,13 @@ public class SyncFasta {
 					System.out.flush();
 				}
 				if (syncCount % BREAK2 == 0) {
-					System.out.printf(" %5dk (%.2f)\n",syncCount/1000,syncCount*100.0/recordsCount);
+					long curTime = System.currentTimeMillis() - startTime;
+
+					System.out.printf(" %5dk (%.2f). Elapsed %s (%.2f seqs/s)\n",
+							syncCount/1000,
+							elapsedFormat.format(new Date(curTime)),
+							syncCount*1000.0/curTime,
+							syncCount*100.0/recordsCount);
 					System.out.flush();					
 				}				
 			}
@@ -116,19 +144,20 @@ public class SyncFasta {
 		log.info(String.format("Total records in output fasta = %d",syncCount));
 	}
 	
-	private Connection getConn(String filename) throws Exception {
-		Class.forName("org.h2.Driver");
-		String connStr = String.format("jdbc:h2:%s",filename);
-		log.info("Connecting to " + connStr);
-		Connection conn = DriverManager.getConnection(connStr, "sa", "");
-		
-		return conn;
+	private Options buildOptions() {
+		Options options = new Options();
+		options.addOption("i","input", true, "Input file");
+		options.addOption("o","output", true, "Output file");
+		options.addOption("r","reference", true, "Reference file");
+		options.addOption("n","nameScheme", true, "naming scheme of sequences (solid or all)");
+
+		return options;
 	}
 	
 	public int execute(String refFilename,String inputFilename,String outputFilename) throws Exception {
 		File dbFile = new File(refFilename + ".h2.db");
 		File dbFile2 = new File(refFilename + ".trace.db");
-
+	
 		File refFile = new File(refFilename);
 		File input = new File(inputFilename);
 		File output = new File(outputFilename);
@@ -158,16 +187,7 @@ public class SyncFasta {
 		return 0;
 	}
 
-	private Options buildOptions() {
-		Options options = new Options();
-		options.addOption("i","input", true, "Input file");
-		options.addOption("o","output", true, "Output file");
-		options.addOption("r","reference", true, "Reference file");
-		options.addOption("n","nameScheme", true, "naming scheme of sequences (solid or all)");
 
-		return options;
-	}
-	
 	public int run(String[] args) throws Exception {		
 		Options options = buildOptions();
 		
