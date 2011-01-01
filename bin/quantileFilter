@@ -17,4 +17,3 @@ echo $BIN/seqfile2fasta -i $FILTERED -o $FILTERED-fasta
 echo "$HADOOP dfs -cat $FILTERED-fasta/fasta* > $OUTPUT.fasta"
 echo "$HADOOP dfs -cat $FILTERED-fasta/qual* > $OUTPUT.qual"
 
- 

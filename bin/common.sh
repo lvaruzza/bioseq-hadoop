@@ -9,3 +9,6 @@ if test ! -f $HADOOP; then
 	exit
     fi
 fi
+
+JARFILE=$BASE/target/bioseq-$VERSION.jar
+
