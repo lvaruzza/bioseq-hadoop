@@ -20,6 +20,9 @@ import org.apache.log4j.Logger;
 public class SyncFasta {
 	private static Logger log = Logger.getLogger(SyncFasta.class);
 
+	private static int BREAK1 = 2000;
+	private static int BREAK2 = 50*BREAK1;
+	
 	public static interface NameExtractor {
 		public String extract(String line);
 	}
@@ -67,11 +70,11 @@ public class SyncFasta {
 				insertStmt.setString(1, extractor.extract(line));
 				insertStmt.execute();
 				recordsCount++;
-				if (recordsCount % 1000 == 0) {
+				if (recordsCount % BREAK1 == 0) {
 					System.out.print(".");
 					System.out.flush();
 				}
-				if (recordsCount % 50000 == 0) {
+				if (recordsCount % BREAK2 == 0) {
 					System.out.printf(" %5dk\n",recordsCount/1000);
 					System.out.flush();					
 				}
@@ -97,11 +100,11 @@ public class SyncFasta {
 				printLine = queryStmt.getResultSet().next();
 				if (syncCount == recordsCount) break;
 				syncCount++;				
-				if (syncCount % 1000 == 0) {
+				if (syncCount % BREAK1 == 0) {
 					System.out.print(".");
 					System.out.flush();
 				}
-				if (syncCount % 50000 == 0) {
+				if (syncCount % BREAK2 == 0) {
 					System.out.printf(" %5dk (%.2f)\n",syncCount/1000,syncCount*100.0/recordsCount);
 					System.out.flush();					
 				}				
