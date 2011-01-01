@@ -129,11 +129,11 @@ public class SyncFasta {
 				if (syncCount % BREAK2 == 0) {
 					long curTime = System.currentTimeMillis() - startTime;
 
-					System.out.printf(" %5dk (%.2f). Elapsed %s (%.2f seqs/s)\n",
+					System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f seqs/s)\n",
 							syncCount/1000,
+							syncCount*100.0/recordsCount,
 							elapsedFormat.format(new Date(curTime)),
-							syncCount*1000.0/curTime,
-							syncCount*100.0/recordsCount);
+							syncCount*1000.0/curTime);
 					System.out.flush();					
 				}				
 			}
