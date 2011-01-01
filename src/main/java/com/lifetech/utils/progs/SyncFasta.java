@@ -67,6 +67,7 @@ public class SyncFasta {
 
 
 	public void populateDB(File input,Connection conn) throws Exception {
+		log.info("Reading reference file " + input.getAbsolutePath());
 		PreparedStatement createTable = conn.prepareStatement("create table seqs (name varchar(1024) primary key)");
 		
 		createTable.execute();
@@ -100,11 +101,19 @@ public class SyncFasta {
 				}
 			}
 		}
+		long curTime = System.currentTimeMillis() - startTime;
+		
+		System.out.printf(" %5dk. Elapsed %s (%.2f seqs/s)\n",
+				recordsCount/1000,
+				elapsedFormat.format(new Date(curTime)),
+				recordsCount*1000.0/curTime);
+		System.out.flush();					
 		log.info(String.format("Total records in ref fasta = %d",recordsCount));
 	}
 
 	
 	private void syncFile(Connection conn, File input, File output) throws Exception {
+		log.info("Reading input file " + input.getAbsolutePath());
 		PreparedStatement queryStmt = conn.prepareStatement("select name from seqs where name=?");
 		PrintStream out = new PrintStream(output);
 		
@@ -141,6 +150,13 @@ public class SyncFasta {
 				out.println(line);
 			}
 		}		
+		long curTime = System.currentTimeMillis() - startTime;
+		System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f seqs/s)\n",
+				syncCount/1000,
+				syncCount*100.0/recordsCount,
+				elapsedFormat.format(new Date(curTime)),
+				syncCount*1000.0/curTime);
+		System.out.flush();					
 		log.info(String.format("Total records in output fasta = %d",syncCount));
 	}
 	
