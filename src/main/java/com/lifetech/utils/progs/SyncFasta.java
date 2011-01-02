@@ -132,7 +132,7 @@ public class SyncFasta {
 				if (syncCount == recordsCount) break;
 				syncCount++;				
 				if (syncCount % BREAK1 == 0) {
-					System.out.print(".");
+					System.out.print("+");
 					System.out.flush();
 				}
 				if (syncCount % BREAK2 == 0) {
