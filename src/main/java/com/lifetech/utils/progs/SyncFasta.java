@@ -129,7 +129,7 @@ public class SyncFasta {
 				queryStmt.setString(1, extractor.extract(line));
 				queryStmt.execute();
 				printLine = queryStmt.getResultSet().next();
-				if (syncCount == recordsCount) break;
+				//if (syncCount == recordsCount) break;
 				syncCount++;				
 				if (syncCount % BREAK1 == 0) {
 					System.out.print("+");
