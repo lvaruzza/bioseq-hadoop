@@ -104,8 +104,9 @@ public class SyncFasta {
 			}
 		}
 		long curTime = System.currentTimeMillis() - startTime;
+		int rest = DOTSPERLINE - (recordsCount % DOTSPERLINE);
 
-		System.out.printf(" %5dk. Elapsed %s (%.2f K seqs/s)\n",
+		System.out.printf("%"+rest+"s %5dk. Elapsed %s (%.2f K seqs/s)\n","",
 				recordsCount / 1000, elapsedFormat.format(new Date(curTime)),
 				recordsCount * 1.0 / curTime);
 		System.out.flush();
