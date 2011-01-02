@@ -24,21 +24,23 @@ public class SyncFasta {
 	private static Logger log = Logger.getLogger(SyncFasta.class);
 
 	private static int BREAK1 = 2000;
-	private static int BREAK2 = 50*BREAK1;
-	
+	private static int DOTSPERLINE = 50;
+	private static int BREAK2 = DOTSPERLINE * BREAK1;
+
 	public static interface NameExtractor {
 		public String extract(String line);
 	}
-	
+
 	public static class IdExtractor implements NameExtractor {
 		@Override
 		public String extract(String line) {
 			return line;
-		}		
+		}
 	}
 
 	public static class SOLiDExtractor implements NameExtractor {
 		private static Pattern regexp = Pattern.compile("^>(\\d+_\\d+_\\d+).*");
+
 		@Override
 		public String extract(String line) {
 			Matcher matcher = regexp.matcher(line);
@@ -47,40 +49,40 @@ public class SyncFasta {
 			} else {
 				throw new RuntimeException("Invalid header '" + line + "'");
 			}
-		}		
+		}
 	}
-	
+
 	private NameExtractor extractor = new IdExtractor();
-	
-	
+
 	private int recordsCount = 0;
 	private DateFormat elapsedFormat = new SimpleDateFormat("kk:mm:ss.SSSS");
-	
+
 	private Connection getConn(String filename) throws Exception {
 		Class.forName("org.h2.Driver");
-		String connStr = String.format("jdbc:h2:%s",filename);
+		String connStr = String.format("jdbc:h2:%s", filename);
 		log.info("Connecting to " + connStr);
 		Connection conn = DriverManager.getConnection(connStr, "sa", "");
-		
+
 		return conn;
 	}
 
-
-	public void populateDB(File input,Connection conn) throws Exception {
+	public void populateDB(File input, Connection conn) throws Exception {
 		log.info("Reading reference file " + input.getAbsolutePath());
-		PreparedStatement createTable = conn.prepareStatement("create table seqs (name varchar(1024) primary key)");
-		
+		PreparedStatement createTable = conn
+				.prepareStatement("create table seqs (name varchar(1024) primary key)");
+
 		createTable.execute();
 		conn.commit();
 
-		PreparedStatement insertStmt = conn.prepareStatement("insert into seqs(name) values(?)");
-		
+		PreparedStatement insertStmt = conn
+				.prepareStatement("insert into seqs(name) values(?)");
+
 		LineIterator it = FileUtils.lineIterator(input, "ASCII");
-	
+
 		recordsCount = 0;
 		long startTime = System.currentTimeMillis();
-		
-		while(it.hasNext()) {
+
+		while (it.hasNext()) {
 			String line = it.nextLine();
 			if (line.startsWith(">")) {
 				insertStmt.setString(1, extractor.extract(line));
@@ -92,125 +94,130 @@ public class SyncFasta {
 				}
 				if (recordsCount % BREAK2 == 0) {
 					long curTime = System.currentTimeMillis() - startTime;
-					
+
 					System.out.printf(" %5dk. Elapsed %s (%.2f K seqs/s)\n",
-							recordsCount/1000,
+							recordsCount / 1000,
 							elapsedFormat.format(new Date(curTime)),
-							recordsCount*1.0/curTime);
-					System.out.flush();					
+							recordsCount * 1.0 / curTime);
+					System.out.flush();
 				}
 			}
 		}
 		long curTime = System.currentTimeMillis() - startTime;
-		
+
 		System.out.printf(" %5dk. Elapsed %s (%.2f K seqs/s)\n",
-				recordsCount/1000,
-				elapsedFormat.format(new Date(curTime)),
-				recordsCount*1.0/curTime);
-		System.out.flush();					
-		log.info(String.format("Total records in ref fasta = %d",recordsCount));
+				recordsCount / 1000, elapsedFormat.format(new Date(curTime)),
+				recordsCount * 1.0 / curTime);
+		System.out.flush();
+		log.info(String.format("Total records in ref fasta = %d", recordsCount));
 	}
 
-	
-	private void syncFile(Connection conn, File input, File output) throws Exception {
+	private void syncFile(Connection conn, File input, File output)
+			throws Exception {
 		log.info("Reading input file " + input.getAbsolutePath());
-		PreparedStatement queryStmt = conn.prepareStatement("select name from seqs where name=?");
+		PreparedStatement queryStmt = conn
+				.prepareStatement("select name from seqs where name=?");
 		PrintStream out = new PrintStream(output);
-		
+
 		LineIterator it = FileUtils.lineIterator(input, "ASCII");
 		boolean printLine = false;
 		int syncCount = 0;
-		
+
 		long startTime = System.currentTimeMillis();
 
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			String line = it.nextLine();
 			if (line.startsWith(">")) {
 				queryStmt.setString(1, extractor.extract(line));
 				queryStmt.execute();
 				printLine = queryStmt.getResultSet().next();
-				//if (syncCount == recordsCount) break;
-				syncCount++;				
-				if (syncCount % BREAK1 == 0) {
-					System.out.print("+");
-					System.out.flush();
-				}
-				if (syncCount % BREAK2 == 0) {
-					long curTime = System.currentTimeMillis() - startTime;
+				// if (syncCount == recordsCount) break;
+				if (printLine) {
+					syncCount++;
 
-					System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n",
-							syncCount/1000,
-							syncCount*100.0/recordsCount,
-							elapsedFormat.format(new Date(curTime)),
-							syncCount*1.0/curTime);
-					System.out.flush();					
-				}				
+					if (syncCount % BREAK1 == 0) {
+						System.out.print("+");
+						System.out.flush();
+					}
+					if (syncCount % BREAK2 == 0) {
+						long curTime = System.currentTimeMillis() - startTime;
+
+						System.out.printf(
+								" %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n",
+								syncCount / 1000, syncCount * 100.0
+										/ recordsCount,
+								elapsedFormat.format(new Date(curTime)),
+								syncCount * 1.0 / curTime);
+						System.out.flush();
+					}
+				}
 			}
 			if (printLine) {
 				out.println(line);
 			}
-		}		
+		}
 		long curTime = System.currentTimeMillis() - startTime;
-		System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n",
-				syncCount/1000,
-				syncCount*100.0/recordsCount,
-				elapsedFormat.format(new Date(curTime)),
-				syncCount*1.0/curTime);
-		System.out.flush();					
-		log.info(String.format("Total records in output fasta = %d",syncCount));
+		int rest = DOTSPERLINE - (syncCount % DOTSPERLINE);
+		System.out.printf("%" + rest + "s %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n","",
+				syncCount / 1000, syncCount * 100.0 / recordsCount,
+				elapsedFormat.format(new Date(curTime)), syncCount * 1.0
+						/ curTime);
+		System.out.flush();
+		log.info(String.format("Total records in output fasta = %d", syncCount));
 	}
-	
+
 	private Options buildOptions() {
 		Options options = new Options();
-		options.addOption("i","input", true, "Input file");
-		options.addOption("o","output", true, "Output file");
-		options.addOption("r","reference", true, "Reference file");
-		options.addOption("n","nameScheme", true, "naming scheme of sequences (solid or all)");
+		options.addOption("i", "input", true, "Input file");
+		options.addOption("o", "output", true, "Output file");
+		options.addOption("r", "reference", true, "Reference file");
+		options.addOption("n", "nameScheme", true,
+				"naming scheme of sequences (solid or all)");
 
 		return options;
 	}
-	
-	public int execute(String refFilename,String inputFilename,String outputFilename) throws Exception {
+
+	public int execute(String refFilename, String inputFilename,
+			String outputFilename) throws Exception {
 		File dbFile = new File(refFilename + ".h2.db");
 		File dbFile2 = new File(refFilename + ".trace.db");
-	
+
 		File refFile = new File(refFilename);
 		File input = new File(inputFilename);
 		File output = new File(outputFilename);
-		
+
 		log.info("Reference File " + refFile.getAbsolutePath());
 		log.info("Input File " + input.getAbsolutePath());
 		log.info("Output File " + output.getAbsolutePath());
-		
+
 		if (dbFile.exists()) {
 			dbFile.delete();
 			dbFile2.delete();
 		}
-		
+
 		Connection conn = null;
-		
+
 		try {
 			conn = getConn(refFile.getAbsolutePath());
 			populateDB(refFile, conn);
-			syncFile(conn,input,output);
-		}
-		finally {
-			if (conn != null) conn.close();
+			syncFile(conn, input, output);
+		} finally {
+			if (conn != null)
+				conn.close();
 			dbFile.delete();
 			dbFile2.delete();
 		}
-		
+
 		return 0;
 	}
 
-
-	public int run(String[] args) throws Exception {		
+	public int run(String[] args) throws Exception {
 		Options options = buildOptions();
-		
-		CommandLineParser parser = new PosixParser();
-		CommandLine cmd = parser.parse( options, args);
 
-		String inputFilename = null;		
+		CommandLineParser parser = new PosixParser();
+		CommandLine cmd = parser.parse(options, args);
+
+		String inputFilename = null;
 		String outputFilename = null;
 		String refFilename = null;
 
@@ -239,24 +246,24 @@ public class SyncFasta {
 			}
 		}
 
-		return execute(refFilename,inputFilename,outputFilename);
+		return execute(refFilename, inputFilename, outputFilename);
 	}
-	
+
 	private void help(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp( appName(), options );
+		formatter.printHelp(appName(), options);
 		System.exit(-1);
 	}
 
 	private String appName() {
 		return "syncFasta";
 	}
-	
+
 	public static void main(String[] args) {
 		SyncFasta prog = new SyncFasta();
 		try {
 			System.exit(prog.run(args));
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
