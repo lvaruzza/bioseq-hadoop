@@ -93,20 +93,20 @@ public class SyncFasta {
 				if (recordsCount % BREAK2 == 0) {
 					long curTime = System.currentTimeMillis() - startTime;
 					
-					System.out.printf(" %5dk. Elapsed %s (%.2f seqs/s)\n",
+					System.out.printf(" %5dk. Elapsed %s (%.2f K seqs/s)\n",
 							recordsCount/1000,
 							elapsedFormat.format(new Date(curTime)),
-							recordsCount*1000.0/curTime);
+							recordsCount*1.0/curTime);
 					System.out.flush();					
 				}
 			}
 		}
 		long curTime = System.currentTimeMillis() - startTime;
 		
-		System.out.printf(" %5dk. Elapsed %s (%.2f seqs/s)\n",
+		System.out.printf(" %5dk. Elapsed %s (%.2f K seqs/s)\n",
 				recordsCount/1000,
 				elapsedFormat.format(new Date(curTime)),
-				recordsCount*1000.0/curTime);
+				recordsCount*1.0/curTime);
 		System.out.flush();					
 		log.info(String.format("Total records in ref fasta = %d",recordsCount));
 	}
@@ -138,11 +138,11 @@ public class SyncFasta {
 				if (syncCount % BREAK2 == 0) {
 					long curTime = System.currentTimeMillis() - startTime;
 
-					System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f seqs/s)\n",
+					System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n",
 							syncCount/1000,
 							syncCount*100.0/recordsCount,
 							elapsedFormat.format(new Date(curTime)),
-							syncCount*1000.0/curTime);
+							syncCount*1.0/curTime);
 					System.out.flush();					
 				}				
 			}
@@ -151,11 +151,11 @@ public class SyncFasta {
 			}
 		}		
 		long curTime = System.currentTimeMillis() - startTime;
-		System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f seqs/s)\n",
+		System.out.printf(" %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n",
 				syncCount/1000,
 				syncCount*100.0/recordsCount,
 				elapsedFormat.format(new Date(curTime)),
-				syncCount*1000.0/curTime);
+				syncCount*1.0/curTime);
 		System.out.flush();					
 		log.info(String.format("Total records in output fasta = %d",syncCount));
 	}
@@ -196,8 +196,8 @@ public class SyncFasta {
 		}
 		finally {
 			if (conn != null) conn.close();
-			//dbFile.delete();
-			//dbFile2.delete();
+			dbFile.delete();
+			dbFile2.delete();
 		}
 		
 		return 0;
