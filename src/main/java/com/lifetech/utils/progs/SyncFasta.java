@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,7 +56,7 @@ public class SyncFasta {
 	private NameExtractor extractor = new IdExtractor();
 
 	private int recordsCount = 0;
-	private DateFormat elapsedFormat = new SimpleDateFormat("kk:mm:ss.SSSS");
+	private DateFormat elapsedFormat = new SimpleDateFormat("KK:mm:ss.SSSS");
 
 	private Connection getConn(String filename) throws Exception {
 		Class.forName("org.h2.Driver");
@@ -180,6 +181,9 @@ public class SyncFasta {
 
 	public int execute(String refFilename, String inputFilename,
 			String outputFilename) throws Exception {
+		
+		elapsedFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		
 		File dbFile = new File(refFilename + ".h2.db");
 		File dbFile2 = new File(refFilename + ".trace.db");
 
