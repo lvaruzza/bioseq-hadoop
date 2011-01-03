@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,7 +40,8 @@ public class SOLiDMate {
 		String connStr = String.format("jdbc:h2:%s", filename);
 		log.info("Connecting to " + connStr);
 		Connection conn = DriverManager.getConnection(connStr, "sa", "");
-
+		Statement stmt=conn.createStatement();
+		stmt.execute(String.format("SET CACHE_SIZE %d",1024*1024));
 		return conn;
 	}
 
