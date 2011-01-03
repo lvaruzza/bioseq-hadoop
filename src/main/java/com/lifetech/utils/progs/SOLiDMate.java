@@ -47,9 +47,13 @@ public class SOLiDMate {
 	public void populateRef(File input, Connection conn) throws Exception {
 		log.info("Reading reference file " + input.getAbsolutePath());
 		PreparedStatement createTable = conn
-				.prepareStatement("create table ref (pos varchar(1024) primary key,name varchar(1024))");
+				.prepareStatement("create table ref (pos int primary key,name varchar(1024) )");
 
+		PreparedStatement createIndex = 
+			conn.prepareStatement("create unique index ref_name on ref(name)");
+		
 		createTable.execute();
+		createIndex.execute();
 		conn.commit();
 
 		PreparedStatement insertStmt = conn
@@ -124,12 +128,12 @@ public class SOLiDMate {
 					}
 				}
 
-				insertStmt.setString(1, extractor.extract(line));
 				if (!it.hasNext()) {
 					throw new RuntimeException("Incomplete sequence at file "
 							+ input.getAbsolutePath() + " in seq " + line);
 				}
 				String seq = it.nextLine();
+				insertStmt.setString(1, extractor.extract(line));
 				insertStmt.setString(2, seq);
 				insertStmt.execute();
 				inputCount++;
@@ -188,6 +192,7 @@ public class SOLiDMate {
 									* 1.0 / curTime);
 					System.out.flush();
 				}
+				//System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3));
 				String name = rs.getString(1);
 				out.printf(">%s_%s\n",name,inputTag);
 				out.println(rs.getString(2));
