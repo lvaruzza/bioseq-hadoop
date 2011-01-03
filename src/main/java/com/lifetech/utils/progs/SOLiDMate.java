@@ -137,11 +137,11 @@ public class SOLiDMate {
 				insertStmt.setString(2, seq);
 				insertStmt.execute();
 				inputCount++;
-				if (recordsCount % BREAK1 == 0) {
+				if (inputCount % BREAK1 == 0) {
 					System.out.print("*");
 					System.out.flush();
 				}
-				if (recordsCount % BREAK2 == 0) {
+				if (inputCount % BREAK2 == 0) {
 					long curTime = System.currentTimeMillis() - startTime;
 
 					System.out.printf(" %5dk. Elapsed %s (%.2f K seqs/s)\n",
