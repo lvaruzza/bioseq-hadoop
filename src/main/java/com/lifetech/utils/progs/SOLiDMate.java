@@ -161,14 +161,10 @@ public class SOLiDMate {
 
 	private void syncFile(Connection conn, File output) throws Exception {
 		log.info(" Syncing.....");
-		PreparedStatement queryStmt = conn
-				.prepareStatement("select seq from input where name=?");
-		PreparedStatement listStmt = conn
-				.prepareStatement("select name from ref order by pos");
+		PreparedStatement listStmt = conn.prepareStatement("select r.name,i.seq from ref as r right join input as i on (i.name=r.name)  order by pos");
 
 		PrintStream out = new PrintStream(output);
 
-		boolean printLine = false;
 		int syncCount = 0;
 
 		listStmt.execute();
@@ -176,13 +172,6 @@ public class SOLiDMate {
 		long startTime = System.currentTimeMillis();
 
 		while (rs.next()) {
-			String name =  rs.getString(1);
-			queryStmt.setString(1, name);
-			queryStmt.execute();
-			ResultSet ors = queryStmt.getResultSet();
-			printLine = ors.next();
-			// if (syncCount == recordsCount) break;
-			if (printLine) {
 				syncCount++;
 
 				if (syncCount % BREAK1 == 0) {
@@ -199,9 +188,9 @@ public class SOLiDMate {
 									* 1.0 / curTime);
 					System.out.flush();
 				}
+				String name = rs.getString(1);
 				out.printf(">%s_%s\n",name,inputTag);
-				out.println(ors.getString(1));
-			}
+				out.println(rs.getString(2));
 		}
 		long curTime = System.currentTimeMillis() - startTime;
 		int rest = DOTSPERLINE - (syncCount % DOTSPERLINE);

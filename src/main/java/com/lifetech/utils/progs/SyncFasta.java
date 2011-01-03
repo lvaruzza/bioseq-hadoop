@@ -105,7 +105,7 @@ public class SyncFasta {
 			}
 		}
 		long curTime = System.currentTimeMillis() - startTime;
-		int rest = DOTSPERLINE - (recordsCount % DOTSPERLINE);
+		int rest = DOTSPERLINE - ((recordsCount % BREAK2)/BREAK1);
 
 		System.out.printf("%"+rest+"s %5dk. Elapsed %s (%.2f K seqs/s)\n","",
 				recordsCount / 1000, elapsedFormat.format(new Date(curTime)),
@@ -159,7 +159,7 @@ public class SyncFasta {
 			}
 		}
 		long curTime = System.currentTimeMillis() - startTime;
-		int rest = DOTSPERLINE - (syncCount % DOTSPERLINE);
+		int rest = DOTSPERLINE - ((syncCount % BREAK2)/BREAK1);
 		System.out.printf("%" + rest + "s %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n","",
 				syncCount / 1000, syncCount * 100.0 / recordsCount,
 				elapsedFormat.format(new Date(curTime)), syncCount * 1.0
