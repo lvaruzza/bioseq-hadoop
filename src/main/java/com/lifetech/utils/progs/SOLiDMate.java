@@ -29,7 +29,6 @@ public class SOLiDMate {
 	private static int DOTSPERLINE = 50;
 	private static int BREAK2 = DOTSPERLINE * BREAK1;
 
-
 	private SyncFasta.NameExtractor extractor = new SyncFasta.SOLiDExtractor();
 
 	private int recordsCount = 0;
@@ -44,14 +43,14 @@ public class SOLiDMate {
 		return conn;
 	}
 
-	public void populateRef(File input, Connection conn) throws Exception {
+	public void readReference(File input, Connection conn) throws Exception {
 		log.info("Reading reference file " + input.getAbsolutePath());
 		PreparedStatement createTable = conn
 				.prepareStatement("create table ref (pos int primary key,name varchar(1024) )");
 
-		PreparedStatement createIndex = 
-			conn.prepareStatement("create unique index ref_name on ref(name)");
-		
+		PreparedStatement createIndex = conn
+				.prepareStatement("create unique index ref_name on ref(name)");
+
 		createTable.execute();
 		createIndex.execute();
 		conn.commit();
@@ -99,7 +98,7 @@ public class SOLiDMate {
 
 	private String inputTag;
 
-	public void populateInput(File input, Connection conn) throws Exception {
+	public void readInput(File input, Connection conn) throws Exception {
 		Pattern regexp = Pattern.compile("^>(\\d+_\\d+_\\d+)_(.*)");
 
 		log.info("Reading Input file " + input.getAbsolutePath());
@@ -164,8 +163,9 @@ public class SOLiDMate {
 	}
 
 	private void syncFile(Connection conn, File output) throws Exception {
-		log.info(" Syncing.....");
-		PreparedStatement listStmt = conn.prepareStatement("select r.name,i.seq from ref as r right join input as i on (i.name=r.name)  order by pos");
+		log.info(" Syncing to " + output.getAbsolutePath());
+		PreparedStatement listStmt = conn
+				.prepareStatement("select r.name,i.seq from ref as r right join input as i on (i.name=r.name)  order by pos");
 
 		PrintStream out = new PrintStream(output);
 
@@ -176,26 +176,27 @@ public class SOLiDMate {
 		long startTime = System.currentTimeMillis();
 
 		while (rs.next()) {
-				syncCount++;
+			// System.out.println(rs.getString(1) + "\t" + rs.getString(2) +
+			// "\t" + rs.getString(3));
+			String name = rs.getString(1);
+			out.printf(">%s_%s\n", name, inputTag);
+			out.println(rs.getString(2));
+			syncCount++;
 
-				if (syncCount % BREAK1 == 0) {
-					System.out.print("+");
-					System.out.flush();
-				}
-				if (syncCount % BREAK2 == 0) {
-					long curTime = System.currentTimeMillis() - startTime;
+			if (syncCount % BREAK1 == 0) {
+				System.out.print("+");
+				System.out.flush();
+			}
+			if (syncCount % BREAK2 == 0) {
+				long curTime = System.currentTimeMillis() - startTime;
 
-					System.out.printf(
-							" %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n",
-							syncCount / 1000, syncCount * 100.0 / recordsCount,
-							elapsedFormat.format(new Date(curTime)), syncCount
-									* 1.0 / curTime);
-					System.out.flush();
-				}
-				//System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3));
-				String name = rs.getString(1);
-				out.printf(">%s_%s\n",name,inputTag);
-				out.println(rs.getString(2));
+				System.out.printf(
+						" %5dk (%.2f%%). Elapsed %s (%.2f K seqs/s)\n",
+						syncCount / 1000, syncCount * 100.0 / recordsCount,
+						elapsedFormat.format(new Date(curTime)), syncCount
+								* 1.0 / curTime);
+				System.out.flush();
+			}
 		}
 		long curTime = System.currentTimeMillis() - startTime;
 		int rest = DOTSPERLINE - (syncCount % DOTSPERLINE);
@@ -241,9 +242,9 @@ public class SOLiDMate {
 
 		try {
 			conn = getConn(output.getAbsolutePath());
-			populateRef(refFile, conn);
-			populateInput(input, conn);
-			syncFile(conn,output);
+			readReference(refFile, conn);
+			readInput(input, conn);
+			syncFile(conn, output);
 		} finally {
 			if (conn != null)
 				conn.close();
