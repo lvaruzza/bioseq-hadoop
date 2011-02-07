@@ -4,6 +4,32 @@
 	<groupId>com.lifetech</groupId>
 	<artifactId>bioseq</artifactId>
 	<version>0.0.1</version>
+	
+      <repositories>
+	<!--
+	    This is the public Atlassian Maven proxy. It makes artifacts
+	    available from the main Maven repository at ibiblio, Codehaus,
+	    and all other dependencies necessary for building Atlassian
+	    products (except Sun JARs we are not allowed to distribute
+	    ourselves). This should have everything you need to build
+	    a plugin; if something is missing, please open a JIRA issue
+	    at http://developer.atlassian.com/jira/browse/CPDK.
+	-->
+	<repository>
+	  <id>central</id>
+	  <url>https://m2proxy.atlassian.com/repository/public</url>
+	  <snapshots>
+	    <enabled>true</enabled>
+	    <updatePolicy>always</updatePolicy>
+	    <checksumPolicy>fail</checksumPolicy>
+	  </snapshots>
+	  <releases>
+	    <enabled>true</enabled>
+	    <checksumPolicy>fail</checksumPolicy>
+	  </releases>
+	</repository>
+	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
