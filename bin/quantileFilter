@@ -1,0 +1,15 @@
+#!/bin/bash
+VERSION=0.0.1
+BIN=`dirname $0`
+BASE=$BIN/../
+HADOOP=$HADOOP_HOME/bin/hadoop
+if test ! -f $HADOOP; then
+    HADOOP=`which hadoop`
+    if test ! -f $HADOOP; then
+	echo Missing hadoop executable, please put it in the path or set the HADOOP_HOME variable.
+	exit
+    fi
+fi
+
+$HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.transform.QuantileFilter -libjars $BASE/target/lib/uncommons-maths-1.2.2.jar $*
+ 
