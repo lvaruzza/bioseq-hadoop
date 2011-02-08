@@ -1,0 +1,4 @@
+#!/bin/bash
+BIN=`dirname $0`
+source $BIN/common.sh
+java -cp $JARFILE com.lifetech.utils.progs.SyncFasta $*

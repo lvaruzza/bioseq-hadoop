@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/bin/bash
 VERSION=0.0.1
 BIN=`dirname $0`
@@ -13,3 +14,24 @@ fi
 
 $HADOOP jar $BASE/target/bioseq-$VERSION.jar com.lifetech.hadoop.bioseq.transform.QuantileFilter -libjars $BASE/target/lib/uncommons-maths-1.2.2.jar $*
  
+=======
+BIN=`dirname $0`
+
+source $BIN/common.sh
+
+FASTA=`readlink -f $1`
+QUAL=`readlink -f $2`
+OUTPUT=$3
+QUANTILE=$4
+
+BASENAME=`basename $FASTA .fasta`
+SEQFILE=$BASENAME-seq
+FILTERED=$OUTPUT-$QUANTILE-seq
+
+echo $BIN/fasta2seqfile -f file://$FASTA -q file://$QUAL -o $SEQFILE
+echo $BIN/hQuantileFilter -i $SEQFILE -o $FILTERED -p $QUANTILE
+echo $BIN/seqfile2fasta -i $FILTERED -o $FILTERED-fasta
+echo "$HADOOP dfs -cat $FILTERED-fasta/fasta* > $OUTPUT.fasta"
+echo "$HADOOP dfs -cat $FILTERED-fasta/qual* > $OUTPUT.qual"
+
+>>>>>>> 96d0740ff5d04e74282d3ea20f8e91523779d031
